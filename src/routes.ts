@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import authRoute from './app/modules/auth/auth.route';
 import userRoute from './app/modules/user/user.route';
+import { powerbiRoute } from './app/modules/powerbi/powerbi.route';
 
 
 const appRouter = Router();
 
 const moduleRoutes = [
     { path: '/auth', route: authRoute },
-    { path: "/user", route: userRoute }
+    { path: "/user", route: userRoute },
+    { path: "/powerbi", route: powerbiRoute },
 
 
 ];
