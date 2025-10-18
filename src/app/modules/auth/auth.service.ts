@@ -20,7 +20,6 @@ const login_user_from_db = async (payload: TLoginPayload) => {
     email: payload?.email,
   });
 
-
   const isPasswordMatch = await bcrypt.compare(
     payload.password,
     isExistAccount?.password
@@ -82,17 +81,20 @@ const refresh_token_from_db = async (token: string) => {
 };
 
 const forget_password_from_db = async (email: string) => {
-  const isAccountExists = await isAccountExist(email);
+  const isAccountExists = await User_Model.findOne({ email: email });
+  console.log('is exit ', isAccountExist)
   const resetToken = jwtHelpers.generateToken(
     {
-      email: isAccountExists.email,
-      role: isAccountExists.role,
+      email: isAccountExists?.email,
+      role: isAccountExists?.role,
     },
     configs.jwt.reset_secret as Secret,
     configs.jwt.reset_expires as string
   );
 
-  const resetPasswordLink = `${configs.jwt.front_end_url}/reset?token=${resetToken}&email=${isAccountExists.email}`;
+  console.log("reset toekn", resetToken);
+
+  const resetPasswordLink = `${configs.jwt.front_end_url}/reset?token=${resetToken}&email=${isAccountExists?.email}`;
   const emailTemplate = `<p>Click the link below to reset your password:</p><a href="${resetPasswordLink}">Reset Password</a>`;
 
   await sendMail({

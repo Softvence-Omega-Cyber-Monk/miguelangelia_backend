@@ -14,7 +14,7 @@ authRoute.post('/refresh-token', auth_controllers.refresh_token);
 
 authRoute.post(
     '/forgot-password',
-    RequestValidator(auth_validation.forgotPassword),
+    // RequestValidator(auth_validation.forgotPassword),
     auth_controllers.forget_password,
 );
 

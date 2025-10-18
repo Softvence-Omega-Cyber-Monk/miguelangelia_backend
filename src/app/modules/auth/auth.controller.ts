@@ -37,6 +37,7 @@ const refresh_token = catchAsync(async (req, res) => {
 
 const forget_password = catchAsync(async (req, res) => {
   const { email } = req?.body;
+
   await auth_services.forget_password_from_db(email);
   manageResponse(res, {
     statusCode: httpStatus.OK,
