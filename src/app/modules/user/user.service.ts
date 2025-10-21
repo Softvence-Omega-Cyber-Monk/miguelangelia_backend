@@ -39,3 +39,21 @@ export const user_service = {
   },
 
 };
+
+export const updateUserService = async (
+  userId: string,
+  updateData: Partial<TUser>
+) => {
+  console.log(updateData)
+  const updatedUser = await User_Model.findByIdAndUpdate(
+    userId,
+    updateData,
+    { new: true, runValidators: true }
+  ).select("-password -confirmPassword"); // don't return sensitive data
+
+  if (!updatedUser) {
+    throw new Error("User not found");
+  }
+
+  return updatedUser;
+};

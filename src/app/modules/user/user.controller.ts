@@ -1,7 +1,7 @@
 import catchAsync from "../../utils/catch_async";
 import manageResponse from "../../utils/manage_response";
 import httpStatus from "http-status";
-import { user_service } from "./user.service";
+import { updateUserService, user_service } from "./user.service";
 
 const create_user = catchAsync(async (req, res) => {
   const userData = req.body;
@@ -39,8 +39,28 @@ const get_all_users = catchAsync(async (req, res) => {
   });
 });
 
+
+export const updateUserController = catchAsync(async (req, res) => {
+  const { id } = req.params; // user id from URL
+  const updateData = req.body;
+
+  // optionally, remove restricted fields like password here
+  delete updateData.password;
+  delete updateData.confirmPassword;
+  delete updateData.email; // often we don’t allow email changes
+
+  const updatedUser = await updateUserService(id, updateData);
+
+  res.status(200).json({
+    success: true,
+    message: "User updated successfully",
+    data: updatedUser,
+  });
+})
+
 export const user_controllers = {
   create_user,
   get_single_user,
   get_all_users,
+  updateUserController
 };

@@ -28,7 +28,7 @@ const user_schema = new Schema<TUser>(
     },
     accountType: {
       type: String,
-      enum: ["personal", "business"],
+      enum: ["personal", "organizations"],
       required: true,
     },
   },
