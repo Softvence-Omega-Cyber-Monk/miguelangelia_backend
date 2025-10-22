@@ -43,8 +43,32 @@ const forget_password = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Reset password link sent to your email!",
-    data: null,
   });
+});
+
+export const resetPasswordController = catchAsync(async (req, res) => {
+  try {
+    const { email, token, password } = req.body;
+
+    if (!email || !token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, token, and password are required",
+      });
+    }
+
+    const result = await auth_services.resetPasswordService(email, token, password);
+
+    res.status(200).json({
+      success: true,
+      message: result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to reset password",
+    });
+  }
 });
 
 export const auth_controllers = {
@@ -53,4 +77,5 @@ export const auth_controllers = {
   refresh_token,
 
   forget_password,
+  resetPasswordController
 };

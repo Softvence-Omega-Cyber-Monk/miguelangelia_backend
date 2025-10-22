@@ -58,13 +58,13 @@ export const updateUserController = catchAsync(async (req, res) => {
 });
 
 const DashboardAnalytis = catchAsync(async (req, res) => {
-  
+
   const result = await user_service.DashboardAnalytis();
 
   manageResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: "All users fetched successfully.",
+    message: "Dashboard analytis fetched successfully.",
     data: result,
   });
 });
