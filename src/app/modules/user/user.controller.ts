@@ -1,7 +1,7 @@
 import catchAsync from "../../utils/catch_async";
 import manageResponse from "../../utils/manage_response";
 import httpStatus from "http-status";
-import { updateUserService, user_service } from "./user.service";
+import {  user_service } from "./user.service";
 
 const create_user = catchAsync(async (req, res) => {
   const userData = req.body;
@@ -48,7 +48,7 @@ export const updateUserController = catchAsync(async (req, res) => {
   delete updateData.confirmPassword;
   delete updateData.email; // often we don’t allow email changes
 
-  const updatedUser = await updateUserService(id, updateData);
+  const updatedUser = await user_service.updateUserService(id, updateData);
 
   res.status(200).json({
     success: true,
