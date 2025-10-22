@@ -39,7 +39,6 @@ const get_all_users = catchAsync(async (req, res) => {
   });
 });
 
-
 export const updateUserController = catchAsync(async (req, res) => {
   const { id } = req.params; // user id from URL
   const updateData = req.body;
@@ -56,11 +55,24 @@ export const updateUserController = catchAsync(async (req, res) => {
     message: "User updated successfully",
     data: updatedUser,
   });
-})
+});
+
+const DashboardAnalytis = catchAsync(async (req, res) => {
+  
+  const result = await user_service.DashboardAnalytis();
+
+  manageResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "All users fetched successfully.",
+    data: result,
+  });
+});
 
 export const user_controllers = {
   create_user,
   get_single_user,
   get_all_users,
-  updateUserController
+  updateUserController,
+  DashboardAnalytis,
 };

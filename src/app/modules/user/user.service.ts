@@ -37,6 +37,16 @@ export const user_service = {
   getAllUsers: async () => {
     return await User_Model.find().sort({ createdAt: -1 }); // newest first
   },
+  DashboardAnalytis: async () => {
+    const allUsers = await User_Model.find()
+    const organazations = await User_Model.find({accountType: "organizations"})
+
+return {
+  allUser : allUsers.length,
+  organazations: organazations.length
+}
+
+  },
 
 };
 
@@ -44,12 +54,11 @@ export const updateUserService = async (
   userId: string,
   updateData: Partial<TUser>
 ) => {
-  console.log(updateData)
-  const updatedUser = await User_Model.findByIdAndUpdate(
-    userId,
-    updateData,
-    { new: true, runValidators: true }
-  ).select("-password -confirmPassword"); // don't return sensitive data
+  console.log(updateData);
+  const updatedUser = await User_Model.findByIdAndUpdate(userId, updateData, {
+    new: true,
+    runValidators: true,
+  }).select("-password -confirmPassword"); // don't return sensitive data
 
   if (!updatedUser) {
     throw new Error("User not found");
@@ -57,3 +66,6 @@ export const updateUserService = async (
 
   return updatedUser;
 };
+
+
+

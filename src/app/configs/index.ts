@@ -4,8 +4,8 @@ export const configs = {
     port: process.env.PORT,
     env: "development",
     jwt: {
-        access_token_secret: process.env.ACCESS_TOKEN_SECRET,
-        refresh_token_secret: process.env.REFRESH_TOKEN_SECRET,
+        access_token_secret: process.env.ACCESS_TOKEN_SECRET as string,
+        refresh_token_secret: process.env.REFRESH_TOKEN_SECRET as string,
         access_expires: process.env.ACCESS_EXPIRES,
         refresh_expires: process.env.REFRESH_EXPIRES,
         reset_secret: process.env.RESET_SECRET,

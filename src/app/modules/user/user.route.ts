@@ -14,6 +14,7 @@ userRoute.get("/get-single/:id", user_controllers.get_single_user);
 // Get all users
 userRoute.get("/getAll", user_controllers.get_all_users);
 userRoute.put("/update/:id", user_controllers.updateUserController);
+userRoute.get("/getAnalytis", user_controllers.DashboardAnalytis);
 
 
 export default userRoute;

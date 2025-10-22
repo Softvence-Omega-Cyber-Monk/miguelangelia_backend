@@ -31,6 +31,11 @@ const user_schema = new Schema<TUser>(
       enum: ["personal", "organizations"],
       required: true,
     },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
   },
   {
     timestamps: true,

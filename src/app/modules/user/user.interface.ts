@@ -10,5 +10,6 @@ export type TUser = {
   address?: string,
   teamMemberNo?: number,
   yourRole?: string
-  accountType : 'personal' | 'organizations'
+  accountType : 'personal' | 'organizations',
+  isActive : boolean
 };
