@@ -60,9 +60,19 @@ exports.updateUserController = (0, catch_async_1.default)((req, res) => __awaite
         data: updatedUser,
     });
 }));
+const DashboardAnalytis = (0, catch_async_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield user_service_1.user_service.DashboardAnalytis();
+    (0, manage_response_1.default)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "All users fetched successfully.",
+        data: result,
+    });
+}));
 exports.user_controllers = {
     create_user,
     get_single_user,
     get_all_users,
-    updateUserController: exports.updateUserController
+    updateUserController: exports.updateUserController,
+    DashboardAnalytis,
 };

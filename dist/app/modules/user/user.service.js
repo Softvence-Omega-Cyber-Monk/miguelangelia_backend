@@ -40,10 +40,21 @@ exports.user_service = {
     getAllUsers: () => __awaiter(void 0, void 0, void 0, function* () {
         return yield user_schema_1.User_Model.find().sort({ createdAt: -1 }); // newest first
     }),
+    DashboardAnalytis: () => __awaiter(void 0, void 0, void 0, function* () {
+        const allUsers = yield user_schema_1.User_Model.find();
+        const organazations = yield user_schema_1.User_Model.find({ accountType: "organizations" });
+        return {
+            allUser: allUsers.length,
+            organazations: organazations.length
+        };
+    }),
 };
 const updateUserService = (userId, updateData) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(updateData);
-    const updatedUser = yield user_schema_1.User_Model.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true }).select("-password -confirmPassword"); // don't return sensitive data
+    const updatedUser = yield user_schema_1.User_Model.findByIdAndUpdate(userId, updateData, {
+        new: true,
+        runValidators: true,
+    }).select("-password -confirmPassword"); // don't return sensitive data
     if (!updatedUser) {
         throw new Error("User not found");
     }
