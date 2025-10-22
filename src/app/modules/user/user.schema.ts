@@ -31,12 +31,19 @@ const user_schema = new Schema<TUser>(
       enum: ["personal", "organizations"],
       required: true,
     },
-    isActive: {
-      type: Boolean,
+    status: {
+      type: String,
+      enum: ["active", "deactive"],
       required: true,
-      default: true,
+      default: "active",
+    },
+    isSuspened: {
+      type: Boolean,
+
+      default: false,
     },
   },
+
   {
     timestamps: true,
   }

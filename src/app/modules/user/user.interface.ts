@@ -11,5 +11,6 @@ export type TUser = {
   teamMemberNo?: number,
   yourRole?: string
   accountType : 'personal' | 'organizations',
-  isActive : boolean
+  status : 'active' | "deactive" ,
+  isSuspened : boolean
 };

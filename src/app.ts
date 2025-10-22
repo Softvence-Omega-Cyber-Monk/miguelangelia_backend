@@ -8,14 +8,13 @@ import bcrypt from "bcrypt";
 import { User_Model } from "./app/modules/user/user.schema";
 import { configs } from "./app/configs";
 
-
 // define app
 const app = express();
 
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:5173" , "http://localhost:5174"],
   })
 );
 app.use(express.json({ limit: "100mb" }));
