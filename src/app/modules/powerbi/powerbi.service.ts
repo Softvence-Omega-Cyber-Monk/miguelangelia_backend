@@ -48,7 +48,7 @@ export const PowerBIService = {
       }
     );
 
-    console.log("response:-----------____________________", response.data);
+    // console.log("response:-----------____________________", response.data);
     return response.data.value;
   },
 
@@ -75,7 +75,7 @@ export const PowerBIService = {
       "https://analysis.windows.net/powerbi/api/.default offline_access"
     );
     const redirect = encodeURIComponent(redirectUri as string);
-    
+
     console.log(
       `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirect}&response_mode=query&scope=${scope}&state=secure_random_state_123`
     );

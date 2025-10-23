@@ -15,7 +15,7 @@ export const getAccessToken = async (): Promise<string> => {
     grant_type: "client_credentials",
     client_id: clientId,
     client_secret: clientSecret,
-    scope: "https://analysis.windows.net/powerbi/api/.default",
+    scope: "https://analysis.windows.net/powerbi/api/.default offline_access",
   });
 
   const response = await axios.post(tokenUrl, data, {
