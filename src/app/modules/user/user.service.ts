@@ -62,21 +62,26 @@ export const user_service = {
       organazations: organazations.length,
     };
   },
+  suspendUser: async (userId: string, data: any) => {
+    try {
+      console.log("Suspension data:", data, userId);
+
+      const res = await User_Model.findOneAndUpdate(
+        { _id: userId },
+        {
+          $set: {
+            isSuspened: data?.isSuspened, // ✅ fixed spelling
+          },
+        },
+        { new: true } // ✅ return updated document
+      );
+
+      return res;
+    } catch (error) {
+      console.error("Error suspending user:", error);
+      throw error;
+    }
+  },
 };
 
-// export const updateUserService = async (
-//   userId: string,
-//   updateData: Partial<TUser>
-// ) => {
-//   console.log(updateData);
-//   const updatedUser = await User_Model.findByIdAndUpdate(userId, updateData, {
-//     new: true,
-//     runValidators: true,
-//   }).select("-password -confirmPassword"); // don't return sensitive data
 
-//   if (!updatedUser) {
-//     throw new Error("User not found");
-//   }
-
-//   return updatedUser;
-// };

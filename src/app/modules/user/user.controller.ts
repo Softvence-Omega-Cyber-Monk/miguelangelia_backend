@@ -69,10 +69,25 @@ const DashboardAnalytis = catchAsync(async (req, res) => {
   });
 });
 
+const suspendUser = catchAsync(async (req, res) => {
+  const userId = req.params.userId
+  const data = req.body
+
+  const result = await user_service.suspendUser(userId , data);
+
+  manageResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "user suspended successfully.",
+    data: result,
+  });
+});
+
 export const user_controllers = {
   create_user,
   get_single_user,
   get_all_users,
   updateUserController,
   DashboardAnalytis,
+  suspendUser
 };

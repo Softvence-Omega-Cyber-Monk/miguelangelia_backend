@@ -39,7 +39,6 @@ const user_schema = new Schema<TUser>(
     },
     isSuspened: {
       type: Boolean,
-
       default: false,
     },
   },
