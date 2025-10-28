@@ -10,4 +10,9 @@ userRoute.put("/update/:id", user_controllers.updateUserController);
 userRoute.get("/getAnalytis", user_controllers.DashboardAnalytis);
 userRoute.put("/suspendUser/:userId", user_controllers.suspendUser);
 
+
+
 export default userRoute;
+
+
+
