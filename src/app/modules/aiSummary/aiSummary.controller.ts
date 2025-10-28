@@ -31,23 +31,4 @@ export const AiSummaryController = {
     }
   },
 
-  updateUsage: async (req: Request, res: Response) => {
-    try {
-      const { userId } = req.params;
-      const updated = await AiSummaryService.updateUsage(userId, req.body);
-      res.json({ success: true, data: updated });
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
-
-  deleteUsage: async (req: Request, res: Response) => {
-    try {
-      const { userId } = req.params;
-      const deleted = await AiSummaryService.deleteUsage(userId);
-      res.json({ success: true, data: deleted });
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
 };

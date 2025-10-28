@@ -1,9 +1,8 @@
 import { AppError } from "../../utils/app_error";
 import { TLoginPayload } from "./auth.interface";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 import httpStatus from "http-status";
 import bcrypt from "bcrypt";
-
 
 import { jwtHelpers } from "../../utils/JWT";
 import { configs } from "../../configs";
@@ -31,6 +30,7 @@ const login_user_from_db = async (payload: TLoginPayload) => {
   }
   const accessToken = jwtHelpers.generateToken(
     {
+      userId: isExistAccount._id,
       email: isExistAccount.email,
       role: isExistAccount.role,
     },
@@ -40,6 +40,7 @@ const login_user_from_db = async (payload: TLoginPayload) => {
 
   const refreshToken = jwtHelpers.generateToken(
     {
+      userId: isExistAccount._id,
       email: isExistAccount.email,
       role: isExistAccount.role,
     },
@@ -123,7 +124,10 @@ export const resetPasswordService = async (
   // Verify token
   let decoded: JwtPayload;
   try {
-    decoded = jwt.verify(token, configs.jwt.reset_secret as Secret) as JwtPayload;
+    decoded = jwt.verify(
+      token,
+      configs.jwt.reset_secret as Secret
+    ) as JwtPayload;
   } catch (error) {
     throw new Error("Invalid or expired token");
   }
@@ -156,5 +160,5 @@ export const auth_services = {
   refresh_token_from_db,
 
   forget_password_from_db,
-  resetPasswordService
+  resetPasswordService,
 };

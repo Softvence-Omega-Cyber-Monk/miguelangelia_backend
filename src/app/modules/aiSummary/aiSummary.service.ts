@@ -11,14 +11,6 @@ export const AiSummaryService = {
   },
 
   getUsageByUserId: async (userId: string) => {
-    return await AiUsageModel.findOne({ userId });
-  },
-
-  updateUsage: async (userId: string, data: any) => {
-    return await AiUsageModel.findOneAndUpdate({ userId }, { $set: data }, { new: true });
-  },
-
-  deleteUsage: async (userId: string) => {
-    return await AiUsageModel.findOneAndDelete({ userId });
+    return await AiUsageModel.find({ userId });
   },
 };
