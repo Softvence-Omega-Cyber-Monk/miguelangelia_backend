@@ -10,19 +10,6 @@ const clientId = process.env.CLIENT_ID!;
 const clientSecret = process.env.CLIENT_SECRET!;
 const redirectUri = process.env.REDIRECTURI;
 
-
-const getTables = async (datasetId: string) => {
-  const token = await getAccessToken();
-  const url = `${baseUrl}/datasets/${datasetId}/tables`;
-
-  const response = await axios.get(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  console.log("All Tables in Dataset:", response.data);
-  return response.data.value;
-};
-
 export const PowerBIService = {
   async getReports(workspaceId: string) {
     const token =
@@ -38,36 +25,6 @@ export const PowerBIService = {
     );
 
     console.log("response:-----------____________________", response.data);
-
-    const datasetId = response.data.value[0].datasetId;
-    const tables = await getTables(datasetId);
-
-    const queryUrl = `${baseUrl}/datasets/${datasetId}/executeQueries`;
-    const allData: Record<string, any[]> = {};
-
-    for (const table of tables) {
-      const body = {
-        queries: [
-          {
-            query: `EVALUATE ${table.name}`, // DAX query to get entire table
-          },
-        ],
-      };
-
-      console.log(`Querying table: ${table.name} with body:`, body);
-
-      const response = await axios.post(queryUrl, body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const tableData = response.data?.results?.[0]?.tables?.[0]?.rows ?? [];
-      allData[table.name] = tableData;
-    }
-
-    console.log("All Tables Data:", allData);
 
     return response.data.value;
   },
