@@ -18,7 +18,8 @@ export const FileReportController = {
       });
 
       res.status(201).json({
-        message: "File uploaded to Cloudinary and stored in DB",
+        success: true,
+        message: "file explored successfully",
         data: result,
       });
     } catch (error: any) {
@@ -42,7 +43,7 @@ export const FileReportController = {
 
       res.status(201).json({
         success: true,
-        message: "File uploaded to Cloudinary and stored in DB",
+        message: " file report generated successfully",
         data: result,
       });
     } catch (error: any) {
