@@ -19,7 +19,7 @@ export const FileReportController = {
 
       res.status(201).json({
         message: "File uploaded to Cloudinary and stored in DB",
-        // data: result,
+        data: result,
       });
     } catch (error: any) {
       console.error(error);

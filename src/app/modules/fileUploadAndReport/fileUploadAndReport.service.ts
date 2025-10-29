@@ -29,59 +29,49 @@ export const FileReportService = {
     const uploaded = await FileReportService.uploadToCloudinary(data.file.path);
     console.log("cloudnary uploaded link : ", uploaded.secure_url);
 
-    //deleted the local file after upload
-    // fs.unlink(data.file.path, (err) => {
-    //   if (err) {
-    //     console.error("Error deleting temp file:", err);
-    //   } else {
-    //     console.log("Temp file deleted:", data.file.path);
-    //   }
-    // });
+    // 3️⃣ Call the AI report API
+    const aiReportUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/report-url?file_url=${encodeURIComponent(
+      uploaded.secure_url
+    )}`;
 
-    const reportResponse = await axios.post(
-      "https://financialanalyticalchatbot-5.onrender.com/ai/file-explore",
-      {
-        fileUrl: uploaded.secure_url, // sending the Cloudinary URL
-        userId: data.userId,
+    const response1 = await fetch(aiReportUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    });
 
-    console.log("AI API response:", reportResponse.data);
+    const reportData = await response1.json();
+    console.log("🤖 Report AI API response:", reportData);
 
-    const summaryResponse = await axios.post(
-      "https://financialanalyticalchatbot-5.onrender.com/ai/summary",
-      {
-        fileUrl: uploaded.secure_url, // sending the Cloudinary URL
-        userId: data.userId,
+    const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
+      uploaded.secure_url
+    )}`;
+
+    const response2 = await fetch(summaryUrl, {
+      method: "POST", // keep POST if API expects it
+      headers: {
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    });
 
-    console.log("AI API response:", summaryResponse.data);
+    const summaryData = await response2.json();
+    console.log("🤖 Summary AI API response:", summaryData);
 
-    // const newReport = await FileUploadAndReportModel.create({
-    //   userId: data.userId,
-    //   report: reportResponse.data,
-    //   summary : summaryResponse.data
-    //   fileUrl: uploaded.secure_url,
-    //   fileName: data.file.originalname,
-    //   fileType: data.file.mimetype,
-    //   fileSize: data.file.size,
-    // });
+    const newReport = await FileUploadAndReportModel.create({
+      userId: data.userId,
+      report: reportData,
+      summary: summaryData,
+      fileUrl: uploaded.secure_url,
+      fileName: data.file.originalname,
+      fileType: data.file.mimetype,
+      fileSize: data.file.size,
+    });
 
-    // return {
-    //   report: reportResponse.data,
-    //   summary: summaryResponse.data,
-    // };
+    return {
+      report: reportData,
+      summary: summaryData,
+    };
   },
 
   getAll: async () => {
