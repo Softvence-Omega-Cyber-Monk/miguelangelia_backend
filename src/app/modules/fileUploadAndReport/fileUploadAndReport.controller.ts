@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { FileReportService } from "./fileUploadAndReport.service";
+import { success } from "zod";
 
 export const FileReportController = {
   fileExplore: async (req: Request, res: Response) => {
@@ -40,6 +41,7 @@ export const FileReportController = {
       });
 
       res.status(201).json({
+        success: true,
         message: "File uploaded to Cloudinary and stored in DB",
         data: result,
       });

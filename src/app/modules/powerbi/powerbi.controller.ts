@@ -1,21 +1,6 @@
 import { Request, Response } from "express";
-import { getPowerBIAccessToken, PowerBIService } from "./powerbi.service";
+import {  PowerBIService } from "./powerbi.service";
 
-export const generatePowerBIToken = async (req: Request, res: Response) => {
-  try {
-    const token = await getPowerBIAccessToken();
-    return res.status(200).json({
-      success: true,
-      message: "Power BI access token generated successfully",
-      token,
-    });
-  } catch (error: any) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to generate Power BI access token",
-    });
-  }
-};
 
 export const PowerBIController = {
   async getReports(req: Request, res: Response) {
@@ -65,7 +50,9 @@ export const PowerBIController = {
 
       const token = await PowerBIService.exchangeCodeForToken(code as string);
 
-      res.status(200).json({
+      console.log("Obtained Tokens:", token);
+
+      res.status(200).send({
         success: true,
         message: "Power BI connected successfully!",
         token,

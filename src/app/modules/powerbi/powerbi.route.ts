@@ -1,9 +1,8 @@
 import express from "express";
-import { generatePowerBIToken, PowerBIController } from "./powerbi.controller";
+import { PowerBIController } from "./powerbi.controller";
 
 const router = express.Router();
 
-router.get("/accessToken", generatePowerBIToken);
 router.get("/reports", PowerBIController.getReports);
 router.get("/dashboards", PowerBIController.getDashboards);
 
