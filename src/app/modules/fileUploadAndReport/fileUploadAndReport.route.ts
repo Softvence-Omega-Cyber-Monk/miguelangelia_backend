@@ -29,9 +29,10 @@ const upload = multer({ storage });
 router.post(
   "/create/fileExplore",
   upload.single("file"),
-  FileReportController.uploadReport
+  FileReportController.fileExplore
 );
 router.get("/", FileReportController.getAllReports);
 router.get("/user/:userId", FileReportController.getUserReports);
+router.get("/user/:userId", FileReportController.getReportAndSummry);
 
 export const fileUploadAndReportRoute = router;

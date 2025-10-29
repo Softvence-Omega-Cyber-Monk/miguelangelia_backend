@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { FileReportService } from "./fileUploadAndReport.service";
 
 export const FileReportController = {
-  uploadReport: async (req: Request, res: Response) => {
+  fileExplore: async (req: Request, res: Response) => {
     try {
       const { userId } = req.body;
       const file = req.file;
@@ -11,8 +11,30 @@ export const FileReportController = {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
+      const result = await FileReportService.fileExplore({
+        userId,
+        file,
+      });
 
-      const result = await FileReportService.create({
+      res.status(201).json({
+        message: "File uploaded to Cloudinary and stored in DB",
+        data: result,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ message: error.message || "Upload failed" });
+    }
+  },
+  getReportAndSummry: async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const result = await FileReportService.fileExplore({
         userId,
         file,
       });
