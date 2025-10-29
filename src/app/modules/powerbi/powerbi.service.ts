@@ -5,14 +5,28 @@ const baseUrl = "https://api.powerbi.com/v1.0/myorg";
 
 // const tenantId = process.env.TENANT_ID!;
 const tenantId = "common";
+
 const clientId = process.env.CLIENT_ID!;
 const clientSecret = process.env.CLIENT_SECRET!;
 const redirectUri = process.env.REDIRECTURI;
 
+
+const getTables = async (datasetId: string) => {
+  const token = await getAccessToken();
+  const url = `${baseUrl}/datasets/${datasetId}/tables`;
+
+  const response = await axios.get(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  console.log("All Tables in Dataset:", response.data);
+  return response.data.value;
+};
+
 export const PowerBIService = {
   async getReports(workspaceId: string) {
     const token =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6InlFVXdtWFdMMTA3Q2MtN1FaMldTYmVPYjNzUSIsImtpZCI6InlFVXdtWFdMMTA3Q2MtN1FaMldTYmVPYjNzUSJ9.eyJhdWQiOiJodHRwczovL2FuYWx5c2lzLndpbmRvd3MubmV0L3Bvd2VyYmkvYXBpIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvMWJlMjhjZWEtNGIwNC00YmQxLWEyNTgtMjhjOGUwMmRmMThhLyIsImlhdCI6MTc2MTcyNjYzMCwibmJmIjoxNzYxNzI2NjMwLCJleHAiOjE3NjE3MzEwNzEsImFjY3QiOjAsImFjciI6IjEiLCJhaW8iOiJBWlFBYS84YUFBQUEwN2VJV0RHelhCUHQxOS9yQ0hEd25QSTFPMDNTNVJUaDN3cmJSMG9zZUdmS0ExL1RiN0xrTUZBaWJQTjFwWkhXdnVUZnlRbW93aWUwWWVBZ1hZMG9POEhuc1V6aW5zOXg4bjZ3ZnVXWmZCRjhReUczYUhCaGYxdm1pa1h3c0VTMi9qU1VyWFZzTVZmRVMwalA4ai81STZMWk1jYU9WZ1J0MElkVVVtaXBrL21WeTlUVk9TMkJ3bUhtTHdFMjlSWGQiLCJhbXIiOlsicHdkIiwibWZhIl0sImFwcGlkIjoiZjQ4Y2IwNTgtOTZiZi00ZGYyLWE1NTktNmM2Y2Q4ZjY3YjY0IiwiYXBwaWRhY3IiOiIxIiwiZmFtaWx5X25hbWUiOiJMdXF1ZSBCcmF2byIsImdpdmVuX25hbWUiOiJNaWd1ZWwiLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxMDMuMTc0LjE4OS4yNDEiLCJuYW1lIjoiTWlndWVsIEx1cXVlIEJyYXZvIiwib2lkIjoiMGM3NTcwMzgtZDc5Ni00YzRmLWIwMjMtYmNlZjQ2NzQ3YWEwIiwicHVpZCI6IjEwMDMyMDA1NDNDM0FGNDQiLCJyaCI6IjEuQVJNQjZvemlHd1JMMFV1aVdDakk0QzN4aWdrQUFBQUFBQUFBd0FBQUFBQUFBQUE2QWNRVEFRLiIsInNjcCI6IkRhc2hib2FyZC5SZWFkLkFsbCBEYXNoYm9hcmQuUmVhZFdyaXRlLkFsbCBEYXRhc2V0LlJlYWQuQWxsIFJlcG9ydC5SZWFkLkFsbCBSZXBvcnQuUmVhZFdyaXRlLkFsbCIsInNpZCI6IjAwOWNlNDI5LTBkNzMtNWMxMS0yNmI5LWIzNjMzYTkzOTMwMSIsInNpZ25pbl9zdGF0ZSI6WyJrbXNpIl0sInN1YiI6IjgtekxJbUhjVFV1Sk1JNFlYaGwxcTIxQ25tT3hxVjhrYVAzR2xUY18xck0iLCJ0aWQiOiIxYmUyOGNlYS00YjA0LTRiZDEtYTI1OC0yOGM4ZTAyZGYxOGEiLCJ1bmlxdWVfbmFtZSI6Ik1pZ3VlbEx1cXVlQnJhdm9AQW5hbnR5YzA4Mi5vbm1pY3Jvc29mdC5jb20iLCJ1cG4iOiJNaWd1ZWxMdXF1ZUJyYXZvQEFuYW50eWMwODIub25taWNyb3NvZnQuY29tIiwidXRpIjoiTndkcVlIQjFFRXFUU2stVFFRRUJBQSIsInZlciI6IjEuMCIsIndpZHMiOlsiNjJlOTAzOTQtNjlmNS00MjM3LTkxOTAtMDEyMTc3MTQ1ZTEwIiwiYjc5ZmJmNGQtM2VmOS00Njg5LTgxNDMtNzZiMTk0ZTg1NTA5Il0sInhtc19hY3RfZmN0IjoiMyA5IiwieG1zX2Z0ZCI6Ikd0cFJsUXdyb0xvdFRiaVlMZHV2WTdzRTN4ZlVaVkJiMVY1NXQ0eVFlMm9CYzNkbFpHVnVZeTFrYzIxeiIsInhtc19pZHJlbCI6IjQgMSIsInhtc19wbCI6ImVzIiwieG1zX3N1Yl9mY3QiOiI4IDMifQ.jDiwDGH83vZBn5b1QiSwiMfn_8ZdvetJwxRG0rtdlY2w8vEEUOgtOqB-nFDE5IQI5ItIg-6f2jrtDO4Xr_W0_5RUweAFyC1QWahH55aKBXHWj443s6GVmUeN4K6zXAlkIUjWt62iVjHmxcIci_XYDPWNcGVVz5FG4xg7Bc0N_9u-knaS7kjxK5dcsgL0IBi7x-anO5rym3OGtyGMM3CsvLn1dyq2MZa6IFqHosKTFO7TIj_CHhwoitJWkXGyIqhO83_BefuuItg5rekjnKtAc-hH5flFfTzKGRAnHpRZ2AfyEaTcaquIA7x8Uqsibq57G-TkZlaFk0XeMNuGclwInw";
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6InlFVXdtWFdMMTA3Q2MtN1FaMldTYmVPYjNzUSIsImtpZCI6InlFVXdtWFdMMTA3Q2MtN1FaMldTYmVPYjNzUSJ9.eyJhdWQiOiJodHRwczovL2FuYWx5c2lzLndpbmRvd3MubmV0L3Bvd2VyYmkvYXBpIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvMWJlMjhjZWEtNGIwNC00YmQxLWEyNTgtMjhjOGUwMmRmMThhLyIsImlhdCI6MTc2MTczMDQxMywibmJmIjoxNzYxNzMwNDEzLCJleHAiOjE3NjE3MzU5NzUsImFjY3QiOjAsImFjciI6IjEiLCJhaW8iOiJBWlFBYS84YUFBQUEvZzF2cDJOWGpIV01nYkcvUURsOXVVaTE3WEFsQk9URFZaU0d2YlhKZ0sxOXlPQVNnVFB3bTYrdkhDTnlVM2JXVHlicFcxZnpYRjhpWnJocUpTUE9MNHBqNjd0R3NTME9DSHJjOEpPV3FFN0xRMVg3cm43eDlqNzJzOGREbm1SM05TSHdLa01ZalE5VnRobHo4dXFyU3R6L2ZxNFN0UkhyWHZkWW5jQW8zT05zZ1Rha2ErSDNjSGUvT0pxUGVEYW0iLCJhbXIiOlsicHdkIiwibWZhIl0sImFwcGlkIjoiZjQ4Y2IwNTgtOTZiZi00ZGYyLWE1NTktNmM2Y2Q4ZjY3YjY0IiwiYXBwaWRhY3IiOiIxIiwiZmFtaWx5X25hbWUiOiJMdXF1ZSBCcmF2byIsImdpdmVuX25hbWUiOiJNaWd1ZWwiLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxMDMuMTc0LjE4OS4yNDEiLCJuYW1lIjoiTWlndWVsIEx1cXVlIEJyYXZvIiwib2lkIjoiMGM3NTcwMzgtZDc5Ni00YzRmLWIwMjMtYmNlZjQ2NzQ3YWEwIiwicHVpZCI6IjEwMDMyMDA1NDNDM0FGNDQiLCJyaCI6IjEuQVJNQjZvemlHd1JMMFV1aVdDakk0QzN4aWdrQUFBQUFBQUFBd0FBQUFBQUFBQUE2QWNRVEFRLiIsInNjcCI6IkRhc2hib2FyZC5SZWFkLkFsbCBEYXNoYm9hcmQuUmVhZFdyaXRlLkFsbCBEYXRhc2V0LlJlYWQuQWxsIFJlcG9ydC5SZWFkLkFsbCBSZXBvcnQuUmVhZFdyaXRlLkFsbCIsInNpZCI6IjAwOWNlNDI5LTBkNzMtNWMxMS0yNmI5LWIzNjMzYTkzOTMwMSIsInNpZ25pbl9zdGF0ZSI6WyJrbXNpIl0sInN1YiI6IjgtekxJbUhjVFV1Sk1JNFlYaGwxcTIxQ25tT3hxVjhrYVAzR2xUY18xck0iLCJ0aWQiOiIxYmUyOGNlYS00YjA0LTRiZDEtYTI1OC0yOGM4ZTAyZGYxOGEiLCJ1bmlxdWVfbmFtZSI6Ik1pZ3VlbEx1cXVlQnJhdm9AQW5hbnR5YzA4Mi5vbm1pY3Jvc29mdC5jb20iLCJ1cG4iOiJNaWd1ZWxMdXF1ZUJyYXZvQEFuYW50eWMwODIub25taWNyb3NvZnQuY29tIiwidXRpIjoicXR3YTY0aUhXay1FZlo3cGRtSUNBUSIsInZlciI6IjEuMCIsIndpZHMiOlsiNjJlOTAzOTQtNjlmNS00MjM3LTkxOTAtMDEyMTc3MTQ1ZTEwIiwiYjc5ZmJmNGQtM2VmOS00Njg5LTgxNDMtNzZiMTk0ZTg1NTA5Il0sInhtc19hY3RfZmN0IjoiMyA5IiwieG1zX2Z0ZCI6IkNHWXljZWxVSHRhQnB2a1hfcmF0XzlqN3JGMkR2eVdOOGxKS0NTTnNFakVCWlhWeWIzQmxibTl5ZEdndFpITnRjdyIsInhtc19pZHJlbCI6IjEgMzIiLCJ4bXNfcGwiOiJlcyIsInhtc19zdWJfZmN0IjoiNCAzIn0.Qp-s5d4gZIAmga7qiFqP3clOtELT3RssH3NZCuJkIg-i3NBu7eKA9uBmtw_ow_pCT8GvGQbtupfevgTl-pdQl3hUGwREQwRvdbGpqBeF2t-RVaioIh5f7ZJDW7jibyYkJZXjZWncJCrrlo1ennnhY5hOW1_1r2LhjpZ2T6kTLvKA7ssFb0UusRyDDuO7onvMwn8sDtaFRSwtvq9yU-HOfanU3vi9biUMj6BmA0vLn9s4IFihpEFUOewRVpTS_VvGId5KqZGkvXDvNzYfW43qwes9VUzaM7kknqVP34gJBdNWNMyGYmaQy8dbSimLFLkigddD1HUB4o3M_OkNQIYFDw";
 
     console.log("Using workspace ID:", workspaceId);
 
@@ -24,6 +38,37 @@ export const PowerBIService = {
     );
 
     console.log("response:-----------____________________", response.data);
+
+    const datasetId = response.data.value[0].datasetId;
+    const tables = await getTables(datasetId);
+
+    const queryUrl = `${baseUrl}/datasets/${datasetId}/executeQueries`;
+    const allData: Record<string, any[]> = {};
+
+    for (const table of tables) {
+      const body = {
+        queries: [
+          {
+            query: `EVALUATE ${table.name}`, // DAX query to get entire table
+          },
+        ],
+      };
+
+      console.log(`Querying table: ${table.name} with body:`, body);
+
+      const response = await axios.post(queryUrl, body, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const tableData = response.data?.results?.[0]?.tables?.[0]?.rows ?? [];
+      allData[table.name] = tableData;
+    }
+
+    console.log("All Tables Data:", allData);
+
     return response.data.value;
   },
 
