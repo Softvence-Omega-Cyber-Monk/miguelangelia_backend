@@ -44,24 +44,24 @@ export const FileReportService = {
     const reportData = await response1.json();
     console.log("🤖 Report AI API response:", reportData);
 
-    const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
-      uploaded.secure_url
-    )}`;
+    // const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
+    //   uploaded.secure_url
+    // )}`;
 
-    const response2 = await fetch(summaryUrl, {
-      method: "POST", // keep POST if API expects it
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    // const response2 = await fetch(summaryUrl, {
+    //   method: "POST", // keep POST if API expects it
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    // });
 
-    const summaryData = await response2.json();
-    console.log("🤖 Summary AI API response:", summaryData);
+    // const summaryData = await response2.json();
+    // console.log("🤖 Summary AI API response:", summaryData);
 
     const newReport = await FileUploadAndReportModel.create({
       userId: data.userId,
       report: reportData,
-      summary: summaryData,
+      // summary: summaryData,
       fileUrl: uploaded.secure_url,
       fileName: data.file.originalname,
       fileType: data.file.mimetype,
@@ -70,7 +70,7 @@ export const FileReportService = {
 
     return {
       report: reportData,
-      summary: summaryData,
+      // summary: summaryData,
     };
   },
 
