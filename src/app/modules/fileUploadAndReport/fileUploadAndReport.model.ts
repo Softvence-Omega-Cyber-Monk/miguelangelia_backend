@@ -4,7 +4,7 @@ import { TFileUploadAndReport } from "./fileUploadAndReport.interface";
 const FileUploadAndReportSchema = new Schema<TFileUploadAndReport>(
   {
     userId: { type: String, required: true },
-    report: { type: Object, required: true },
+    fileExplore: { type: Object, required: true },
     fileUrl: { type: String, required: true },
     fileName: { type: String, required: true },
     fileType: { type: String, required: true },

@@ -1,6 +1,6 @@
 export type TFileUploadAndReport = {
   userId: string;
-  report: object;
+  fileExplore: object;
   fileUrl: string;
   fileName: string;
   fileType: string;

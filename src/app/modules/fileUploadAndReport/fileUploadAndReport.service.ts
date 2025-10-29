@@ -41,8 +41,8 @@ export const FileReportService = {
       },
     });
 
-    const reportData = await response1.json();
-    console.log("🤖 Report AI API response:", reportData);
+    const fileExplore = await response1.json();
+    console.log("🤖 Report AI API response:", fileExplore);
 
     // const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
     //   uploaded.secure_url
@@ -60,7 +60,7 @@ export const FileReportService = {
 
     const newReport = await FileUploadAndReportModel.create({
       userId: data.userId,
-      report: reportData,
+      report: fileExplore,
       // summary: summaryData,
       fileUrl: uploaded.secure_url,
       fileName: data.file.originalname,
@@ -69,7 +69,7 @@ export const FileReportService = {
     });
 
     return {
-      report: reportData,
+      fileExplore: fileExplore,
       // summary: summaryData,
     };
   },

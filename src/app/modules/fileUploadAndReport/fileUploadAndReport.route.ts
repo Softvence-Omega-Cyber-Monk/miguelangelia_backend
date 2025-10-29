@@ -27,7 +27,7 @@ const upload = multer({ storage });
 
 // Routes
 router.post(
-  "/create",
+  "/create/fileExplore",
   upload.single("file"),
   FileReportController.uploadReport
 );
