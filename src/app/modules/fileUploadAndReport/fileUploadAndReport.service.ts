@@ -84,37 +84,37 @@ export const FileReportService = {
     console.log("cloudnary uploaded link : ", uploaded.secure_url);
 
     // 3️⃣ Call the AI report API
-    const aiReportUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/report-url?file_url=${encodeURIComponent(
-      uploaded.secure_url
-    )}`;
-
-    const response1 = await fetch(aiReportUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    const fileExplore = await response1.json();
-    // console.log("🤖 Report AI API response:", fileExplore);
-
-    // const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
+    // const aiReportUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/report-url?file_url=${encodeURIComponent(
     //   uploaded.secure_url
     // )}`;
 
-    // const response2 = await fetch(summaryUrl, {
-    //   method: "POST", // keep POST if API expects it
+    // const response1 = await fetch(aiReportUrl, {
+    //   method: "POST",
     //   headers: {
     //     "Content-Type": "application/json",
     //   },
     // });
 
-    // const summaryData = await response2.json();
-    // console.log("🤖 Summary AI API response:", summaryData);
+    // const fileExplore = await response1.json();
+    // console.log("🤖 Report AI API response:", fileExplore);
+
+    const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
+      uploaded.secure_url
+    )}`;
+
+    const response2 = await fetch(summaryUrl, {
+      method: "POST", // keep POST if API expects it
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const summaryData = await response2.json();
+    console.log("🤖 Summary AI API response:", summaryData);
 
     const newReport = await FileUploadAndReportModel.create({
       userId: data.userId,
-      fileExplore: fileExplore,
+      summary: summaryData,
       // summary: summaryData,
       fileUrl: uploaded.secure_url,
       fileName: data.file.originalname,
@@ -123,7 +123,7 @@ export const FileReportService = {
     });
 
     return {
-      fileExplore: fileExplore,
+      summary: summaryData,
       // summary: summaryData,
     };
   },

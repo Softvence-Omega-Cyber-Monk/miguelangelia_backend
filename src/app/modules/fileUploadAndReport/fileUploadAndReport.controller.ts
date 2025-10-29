@@ -34,7 +34,7 @@ export const FileReportController = {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const result = await FileReportService.fileExplore({
+      const result = await FileReportService.getReportAndSummry({
         userId,
         file,
       });
