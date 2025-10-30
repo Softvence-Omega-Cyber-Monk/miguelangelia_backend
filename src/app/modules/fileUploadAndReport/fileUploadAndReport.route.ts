@@ -31,7 +31,7 @@ router.post(
   upload.single("file"),
   FileReportController.fileExplore
 );
-router.post(
+router.get(
   "/create/getReportAndSummry",
   upload.single("file"),
   FileReportController.getReportAndSummry

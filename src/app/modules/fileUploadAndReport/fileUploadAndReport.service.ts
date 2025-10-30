@@ -83,21 +83,6 @@ export const FileReportService = {
     const uploaded = await FileReportService.uploadToCloudinary(data.file.path);
     console.log("cloudnary uploaded link : ", uploaded.secure_url);
 
-    // 3️⃣ Call the AI report API
-    // const aiReportUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/report-url?file_url=${encodeURIComponent(
-    //   uploaded.secure_url
-    // )}`;
-
-    // const response1 = await fetch(aiReportUrl, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // });
-
-    // const fileExplore = await response1.json();
-    // console.log("🤖 Report AI API response:", fileExplore);
-
     const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
       uploaded.secure_url
     )}`;
@@ -112,10 +97,29 @@ export const FileReportService = {
     const summaryData = await response2.json();
     console.log("🤖 Summary AI API response:", summaryData);
 
+    // 3️⃣ Call the AI report API
+    // "https://financialanalyticalchatbot-5.onrender.com/ai/generate-report?file_url=https%3A%2F%2Fres.cloudinary.com%2Fdmsoyktou%2Fraw%2Fupload%2Fv1761705527%2Freports%2Fwcrco5a7uto8zmvh59hw.csv"
+    const aiReportUrl =
+      "https://financialanalyticalchatbot-5.onrender.com/ai/generate-report?file_url=https%3A%2F%2Fres.cloudinary.com%2Fdmsoyktou%2Fraw%2Fupload%2Fv1761705527%2Freports%2Fwcrco5a7uto8zmvh59hw.csv";
+    // const aiReportUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/generate-report?file_url=${encodeURIComponent(
+    //   uploaded.secure_url
+    // )}`;
+    console.log("AI Report URL:", aiReportUrl);
+
+    const response1 = await fetch(aiReportUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const report = await response1.json();
+    console.log("🤖 Report AI API response:", report);
+
     const newReport = await FileUploadAndReportModel.create({
       userId: data.userId,
       summary: summaryData,
-      // summary: summaryData,
+      report: report,
       fileUrl: uploaded.secure_url,
       fileName: data.file.originalname,
       fileType: data.file.mimetype,
@@ -124,7 +128,7 @@ export const FileReportService = {
 
     return {
       summary: summaryData,
-      // summary: summaryData,
+      report: report,
     };
   },
 
