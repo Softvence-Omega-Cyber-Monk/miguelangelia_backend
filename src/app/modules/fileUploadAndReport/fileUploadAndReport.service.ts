@@ -30,7 +30,7 @@ export const FileReportService = {
     console.log("cloudnary uploaded link : ", uploaded.secure_url);
 
     // 3️⃣ Call the AI report API
-    const aiReportUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/file-explore?file_url=${encodeURIComponent(
+    const aiReportUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/file-explore?file_url=${encodeURIComponent(
       uploaded.secure_url
     )}`;
 
@@ -44,24 +44,9 @@ export const FileReportService = {
     const fileExplore = await response1.json();
     console.log("🤖 Report AI API response:", fileExplore);
 
-    // const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
-    //   uploaded.secure_url
-    // )}`;
-
-    // const response2 = await fetch(summaryUrl, {
-    //   method: "POST", // keep POST if API expects it
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // });
-
-    // const summaryData = await response2.json();
-    // console.log("🤖 Summary AI API response:", summaryData);
-
     const newReport = await FileUploadAndReportModel.create({
       userId: data.userId,
       fileExplore: fileExplore,
-      // summary: summaryData,
       fileUrl: uploaded.secure_url,
       fileName: data.file.originalname,
       fileType: data.file.mimetype,
@@ -70,7 +55,6 @@ export const FileReportService = {
 
     return {
       fileExplore: fileExplore,
-      // summary: summaryData,
     };
   },
 
@@ -83,7 +67,7 @@ export const FileReportService = {
     const uploaded = await FileReportService.uploadToCloudinary(data.file.path);
     console.log("cloudnary uploaded link : ", uploaded.secure_url);
 
-    const summaryUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/summary?file_url=${encodeURIComponent(
+    const summaryUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/summary?file_url=${encodeURIComponent(
       uploaded.secure_url
     )}`;
 
@@ -98,12 +82,14 @@ export const FileReportService = {
     console.log("🤖 Summary AI API response:", summaryData);
 
     // 3️⃣ Call the AI report API
-    // "https://financialanalyticalchatbot-5.onrender.com/ai/generate-report?file_url=https%3A%2F%2Fres.cloudinary.com%2Fdmsoyktou%2Fraw%2Fupload%2Fv1761705527%2Freports%2Fwcrco5a7uto8zmvh59hw.csv"
+
     const aiReportUrl =
-      "https://financialanalyticalchatbot-5.onrender.com/ai/generate-report?file_url=https%3A%2F%2Fres.cloudinary.com%2Fdmsoyktou%2Fraw%2Fupload%2Fv1761705527%2Freports%2Fwcrco5a7uto8zmvh59hw.csv";
-    // const aiReportUrl = `https://financialanalyticalchatbot-5.onrender.com/ai/generate-report?file_url=${encodeURIComponent(
+      "https://financialanalyticalchatbot-9osk.onrender.com/ai/generate-report?file_url=https%3A%2F%2Fres.cloudinary.com%2Fdmsoyktou%2Fraw%2Fupload%2Fv1761705527%2Freports%2Fwcrco5a7uto8zmvh59hw.csv";
+
+    // const aiReportUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/generate-report?file_url=${encodeURIComponent(
     //   uploaded.secure_url
     // )}`;
+
     console.log("AI Report URL:", aiReportUrl);
 
     const response1 = await fetch(aiReportUrl, {
