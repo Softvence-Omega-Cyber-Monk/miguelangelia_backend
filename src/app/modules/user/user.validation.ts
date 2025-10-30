@@ -1,18 +1,11 @@
-import { z } from "zod";
+import { email, z } from "zod";
 
-const update_user = z.object({
-    name: z.string().optional(),
-    photo: z.string().optional(),
-    address: z.object({
-        location: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        postCode: z.string().optional(),
-        country: z.string().optional(),
-        timeZone: z.string().optional(),
-    }).optional()
-})
+const createUserValidaton = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6),
+});
 
 export const user_validations = {
-    update_user
-}
+  createUserValidaton,
+};

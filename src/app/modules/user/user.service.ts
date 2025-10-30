@@ -1,22 +1,87 @@
-import { Request } from "express"
-import uploadCloud from "../../utils/cloudinary";
+import { TUser } from "./user.interface";
+import bcrypt from "bcrypt";
 import { User_Model } from "./user.schema";
-import { Account_Model } from "../auth/auth.schema";
 
-const update_profile_into_db = async (req: Request) => {
-    // upload file and get link
-    if (req.file) {
-        const uploadedImage = await uploadCloud(req.file);
-        req.body.photo = uploadedImage?.secure_url;
+export const user_service = {
+  createUser: async (userData: TUser) => {
+    console.log("user data ", userData);
+
+    // Check if email already exists
+    const existingUser = await User_Model.findOne({ email: userData.email });
+    if (existingUser) {
+      throw new Error("Email already exists. Please use a different email.");
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+    const user = new User_Model({
+      ...userData,
+      password: hashedPassword,
+      confirmPassword: hashedPassword,
+    });
+
+    return await user.save();
+  },
+
+  // Get single user by ID
+  getUserById: async (id: string) => {
+    const user = await User_Model.findById(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
+  },
+
+  // Get all users
+  getAllUsers: async () => {
+    return await User_Model.find().sort({ createdAt: -1 }); // newest first
+  },
+
+  updateUserService: async (userId: string, updateData: Partial<TUser>) => {
+    console.log(updateData);
+    const updatedUser = await User_Model.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password -confirmPassword"); // don't return sensitive data
+
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+
+    return updatedUser;
+  },
+  DashboardAnalytis: async () => {
+    const allUsers = await User_Model.find();
+    const organazations = await User_Model.find({
+      accountType: "organizations",
+    });
+
+    return {
+      allUser: allUsers.length,
+      organazations: organazations.length,
     };
+  },
+  suspendUser: async (userId: string, data: any) => {
+    try {
+      console.log("Suspension data:", data, userId);
 
-    const isExistUser = await Account_Model.findOne({ email: req?.user?.email }).lean()
-    const result = await User_Model.findOneAndUpdate({ accountId: isExistUser!._id }, req?.body)
-    return result
-}
+      const res = await User_Model.findOneAndUpdate(
+        { _id: userId },
+        {
+          $set: {
+            isSuspened: data?.isSuspened, // ✅ fixed spelling
+          },
+        },
+        { new: true } // ✅ return updated document
+      );
+
+      return res;
+    } catch (error) {
+      console.error("Error suspending user:", error);
+      throw error;
+    }
+  },
+};
 
 
-
-export const user_services = {
-    update_profile_into_db
-}
