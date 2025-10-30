@@ -3,33 +3,33 @@ import { PowerBIService } from "./powerbi.service";
 import axios from "axios";
 
 export const PowerBIController = {
-  async getReports(req: Request, res: Response) {
+  async saveToken(req: Request, res: Response) {
     try {
+      const { userId, access_token, refresh_token, expires_in } = req.body;
 
+      if (!userId || !access_token || !refresh_token || !expires_in) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
 
-      const workspaceId = process.env.WORKSPACE_ID!;
-      const reports = await PowerBIService.getReports(workspaceId);
-      res.json({ success: true, data: reports });
-    } catch (error: any) {
-      console.error(error);
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
+      const token = await PowerBIService.saveOrUpdateToken({
+        userId,
+        access_token,
+        refresh_token,
+        expires_in,
+      } as any);
 
-  async getDashboards(req: Request, res: Response) {
-    try {
-      const workspaceId = process.env.WORKSPACE_ID!;
-      const dashboards = await PowerBIService.getDashboards(workspaceId);
-      res.json({ success: true, data: dashboards });
-    } catch (error: any) {
-      console.error(error);
-      res.status(500).json({ success: false, message: error.message });
+      res.status(200).json({ success: true, token });
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ success: false, message: err.message });
     }
   },
 
   async getAuthUrl(req: Request, res: Response) {
     try {
-      const authUrl = PowerBIService.getAuthUrl();
+      const userId = req.params.userId;
+      console.log("Generating auth URL for user ID:", userId);
+      const authUrl = PowerBIService.getAuthUrl(userId);
       return res.redirect(authUrl);
     } catch (error: any) {
       console.error("Auth URL Error:", error);
@@ -39,7 +39,7 @@ export const PowerBIController = {
 
   async callback(req: Request, res: Response) {
     try {
-      const { code, error, error_description } = req.query;
+      const { code, state, error, error_description } = req.query;
 
       if (error) {
         console.error("Callback Error:", { error, error_description });
@@ -50,9 +50,24 @@ export const PowerBIController = {
         return res.status(400).json({ message: "Authorization code missing" });
       }
 
-      const token = await PowerBIService.exchangeCodeForToken(code as string);
+      let userId: string | undefined;
+      if (state) {
+        try {
+          const parsedState = JSON.parse(decodeURIComponent(state as string));
+          userId = parsedState.userId;
+        } catch (err) {
+          console.warn("Failed to parse state:", err);
+        }
+      }
 
-      console.log("Obtained Tokens:", token);
+      // console.log("User ID from state:", userId);
+
+      const token = await PowerBIService.exchangeCodeForToken(
+        code as string,
+        userId
+      );
+
+      // console.log("Obtained Tokens:", token);
 
       res.status(200).send({
         success: true,
@@ -62,6 +77,44 @@ export const PowerBIController = {
     } catch (err: any) {
       console.error("Callback Handler Error:", err.message);
       res.status(500).json({ error: err.message });
+    }
+  },
+
+  async getReports(req: Request, res: Response) {
+    try {
+      const userId = req.params.userId;
+      const workspaceId = process.env.WORKSPACE_ID!;
+      const reports = await PowerBIService.getReports(workspaceId, userId);
+      res.json({ success: true, data: reports });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  async getDashboards(req: Request, res: Response) {
+    try {
+      const userId = req.params.userId;
+      const workspaceId = process.env.WORKSPACE_ID!;
+      const dashboards = await PowerBIService.getDashboards(
+        workspaceId,
+        userId
+      );
+      res.json({ success: true, data: dashboards });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+  async getDatasets(req: Request, res: Response) {
+    try {
+      const userId = req.params.userId;
+      const workspaceId = req.params.workspaceId;
+      const dashboards = await PowerBIService.getDatasets(workspaceId, userId);
+      res.json({ success: true, data: dashboards });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ success: false, message: error.message });
     }
   },
 };

@@ -67,36 +67,30 @@ export const FileReportService = {
     const uploaded = await FileReportService.uploadToCloudinary(data.file.path);
     console.log("cloudnary uploaded link : ", uploaded.secure_url);
 
-    const summaryUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/summary?file_url=${encodeURIComponent(
-      uploaded.secure_url
-    )}`;
-
-    const response2 = await fetch(summaryUrl, {
-      method: "POST", // keep POST if API expects it
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    const summaryData = await response2.json();
-    console.log("🤖 Summary AI API response:", summaryData);
-
-    // 3️⃣ Call the AI report API
-
-    const aiReportUrl =
-      "https://financialanalyticalchatbot-9osk.onrender.com/ai/generate-report?file_url=https%3A%2F%2Fres.cloudinary.com%2Fdmsoyktou%2Fraw%2Fupload%2Fv1761705527%2Freports%2Fwcrco5a7uto8zmvh59hw.csv";
-
-    // const aiReportUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/generate-report?file_url=${encodeURIComponent(
+    // const summaryUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/summary?file_url=${encodeURIComponent(
     //   uploaded.secure_url
     // )}`;
 
-    console.log("AI Report URL:", aiReportUrl);
+    // const response2 = await fetch(summaryUrl, {
+    //   method: "POST", // keep POST if API expects it
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    // });
+
+    // const summaryData = await response2.json();
+    // console.log("🤖 Summary AI API response:", summaryData);
+
+    // 3️⃣ Call the AI report API
+
+    const aiReportUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/generate-report`;
 
     const response1 = await fetch(aiReportUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ file_url: uploaded.secure_url }),
     });
 
     const report = await response1.json();
@@ -104,7 +98,7 @@ export const FileReportService = {
 
     const newReport = await FileUploadAndReportModel.create({
       userId: data.userId,
-      summary: summaryData,
+      // summary: summaryData,
       report: report,
       fileUrl: uploaded.secure_url,
       fileName: data.file.originalname,
@@ -113,7 +107,7 @@ export const FileReportService = {
     });
 
     return {
-      summary: summaryData,
+      // summary: summaryData,
       report: report,
     };
   },
