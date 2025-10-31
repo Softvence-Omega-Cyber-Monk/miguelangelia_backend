@@ -15,4 +15,5 @@ export type TUser = {
   isSuspened : boolean ,
   profileImage?: string,
   phone?: string,
+  fullName?: string,
 };

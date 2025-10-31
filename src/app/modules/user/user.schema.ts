@@ -47,6 +47,9 @@ const user_schema = new Schema<TUser>(
     phone: {
       type: String,
     },
+    fullName: {
+      type: String,
+    },
   },
 
   {

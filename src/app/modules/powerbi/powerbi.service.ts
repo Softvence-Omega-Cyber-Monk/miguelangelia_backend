@@ -203,7 +203,7 @@ export const PowerBIService = {
       console.log("🪙 Token retrieved for datasets request:", token);
       console.log("📂 Using workspace ID:", workspaceId);
 
-      // 2️⃣ Call Power BI API for datasets
+      // 2️⃣ Get all datasets in the workspace
       const response = await axios.get(
         `${baseUrl}/groups/${workspaceId}/datasets`,
         {
@@ -211,23 +211,59 @@ export const PowerBIService = {
         }
       );
 
-      // 3️⃣ Extract and format dataset list
-      const datasets = (response.data.value || []).map((ds: any) => ({
-        id: ds.id,
-        name: ds.name,
-        webUrl: ds.webUrl,
-        createdDate: ds.createdDate,
-        isRefreshable: ds.isRefreshable,
-      }));
-
+      const datasets = response.data.value || [];
       console.log("✅ Datasets fetched:", datasets);
 
-      // 4️⃣ Return in a clean structure
+      // 3️⃣ For each dataset, get table info
+      const datasetsWithTables = [];
+
+      for (const ds of datasets) {
+        try {
+          const tablesResponse = await axios.get(
+            `${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          const tables = tablesResponse.data.value || [];
+          console.log(`📊 Tables in dataset "${ds.name}":`, tables);
+
+          datasetsWithTables.push({
+            id: ds.id,
+            name: ds.name,
+            webUrl: ds.webUrl,
+            createdDate: ds.createdDate,
+            isRefreshable: ds.isRefreshable,
+            tables: tables.map((t: any) => ({
+              name: t.name,
+              columns: t.columns?.map((c: any) => ({
+                name: c.name,
+                dataType: c.dataType,
+              })),
+            })),
+          });
+        } catch (tableErr: any) {
+          console.error(
+            `⚠️ Failed to fetch tables for dataset ${ds.name}:`,
+            tableErr.message
+          );
+          datasetsWithTables.push({
+            ...ds,
+            tables: [],
+            error:
+              tableErr.response?.data?.error?.message ||
+              "Failed to fetch tables",
+          });
+        }
+      }
+
+      // 4️⃣ Return combined structure
       return {
         success: true,
         workspaceId,
-        count: datasets.length,
-        datasets,
+        count: datasetsWithTables.length,
+        datasets: datasetsWithTables,
       };
     } catch (error: any) {
       console.error("❌ Error fetching datasets:", error.message || error);
