@@ -2,6 +2,7 @@ import axios from "axios";
 import { getAccessToken } from "../../utils/powerbiAuth";
 import qs from "qs";
 import { PowerBiTokenModel } from "./powerbi.model";
+import { TPowerBiToken } from "./powerbi.interface";
 const baseUrl = "https://api.powerbi.com/v1.0/myorg";
 
 // const tenantId = process.env.TENANT_ID!;
@@ -74,8 +75,9 @@ export const PowerBIService = {
   // 1️⃣ Generate OAuth authorization URL
   getAuthUrl(userId: string) {
     const scope = encodeURIComponent(
-      "https://analysis.windows.net/powerbi/api/.default offline_access"
+      "https://analysis.windows.net/powerbi/api/Dashboard.Read.All https://analysis.windows.net/powerbi/api/Report.Read.All https://analysis.windows.net/powerbi/api/Workspace.Read.All offline_access openid profile email"
     );
+
     const redirect = encodeURIComponent(redirectUri as string);
 
     // Include userId in the state parameter
@@ -87,11 +89,13 @@ export const PowerBIService = {
     return authUrl;
   },
 
-  // 2️⃣ Exchange authorization code for tokens
+  // 2️⃣ Exchange authorization code for tokens + fetch workspaceId
   async exchangeCodeForToken(code: string, userId?: string) {
     if (!userId) {
       throw new Error("userId is required to save tokens");
     }
+
+    console.log("code received in exchangeCodeForToken:", code);
 
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
 
@@ -103,16 +107,37 @@ export const PowerBIService = {
       redirect_uri: redirectUri,
     });
 
+    // 🔹 1️⃣ Get tokens from Microsoft
     const response = await axios.post(tokenUrl, data, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
     const { access_token, refresh_token, expires_in } = response.data;
-
-    // Compute absolute expiration timestamp
     const expires_at = Date.now() + expires_in * 1000;
 
-    // Save or update in DB
+    // 🔹 2️⃣ Fetch all workspaces
+    const workspacesRes = await axios.get(
+      "https://api.powerbi.com/v1.0/myorg/groups",
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+
+    // Extract workspace IDs and names
+    const workspaces = (workspacesRes.data.value || []).map((ws: any) => ({
+      id: ws.id,
+      name: ws.name,
+    }));
+
+    console.log("Fetched workspaces:", workspaces);
+
+    if (!workspaces.length) {
+      console.warn("No Power BI workspaces found for user:", userId);
+    }
+
+    // 🔹 3️⃣ Save tokens and the first workspace ID (optional)
     await PowerBiTokenModel.findOneAndUpdate(
       { userId },
       {
@@ -120,16 +145,19 @@ export const PowerBIService = {
         access_token,
         refresh_token,
         expires_in: expires_at,
+        workspaces: workspaces,
       },
       { upsert: true, new: true }
     );
 
-    console.log(`Saved tokens for user: ${userId}`);
+    console.log(`✅ Saved tokens for user: ${userId}`);
 
+    // 🔹 4️⃣ Return all together
     return {
       access_token,
       refresh_token,
-      expires_in: expires_at, // returning absolute timestamp
+      expires_in: expires_at,
+      workspaces, // ✅ now contains all workspace IDs and names
     };
   },
 

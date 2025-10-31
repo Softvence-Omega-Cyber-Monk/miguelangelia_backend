@@ -29,7 +29,7 @@ export const FileReportController = {
   },
   getReportAndSummry: async (req: Request, res: Response) => {
     try {
-      const { userId } = req.body;
+      const { userId ,fileId} = req.body;
       const file = req.file;
 
       if (!file) {
@@ -38,6 +38,7 @@ export const FileReportController = {
 
       const result = await FileReportService.getReportAndSummry({
         userId,
+        fileId,
         file,
       });
 
@@ -70,4 +71,5 @@ export const FileReportController = {
       res.status(500).json({ message: error.message });
     }
   },
+
 };

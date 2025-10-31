@@ -54,16 +54,15 @@ export const FileReportService = {
     });
 
     return {
-      fileExplore: fileExplore,
+      data: newReport,
     };
   },
 
   getReportAndSummry: async (data: {
     userId: string;
+    fileId: string;
     file: Express.Multer.File;
   }) => {
-    console.log(data.file, data.userId);
-
     const uploaded = await FileReportService.uploadToCloudinary(data.file.path);
     console.log("cloudnary uploaded link : ", uploaded.secure_url);
 
@@ -96,15 +95,14 @@ export const FileReportService = {
     const report = await response1.json();
     console.log("🤖 Report AI API response:", report);
 
-    const newReport = await FileUploadAndReportModel.create({
-      userId: data.userId,
-      summary: summaryData,
-      report: report,
-      fileUrl: uploaded.secure_url,
-      fileName: data.file.originalname,
-      fileType: data.file.mimetype,
-      fileSize: data.file.size,
-    });
+    const newReport = await FileUploadAndReportModel.findByIdAndUpdate(
+      data.fileId,
+      {
+        summary: summaryData,
+        report: report,
+      },
+      { new: true }
+    );
 
     return {
       summary: summaryData,
