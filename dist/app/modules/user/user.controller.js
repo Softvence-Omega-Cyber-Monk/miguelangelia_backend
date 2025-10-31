@@ -53,7 +53,7 @@ exports.updateUserController = (0, catch_async_1.default)((req, res) => __awaite
     delete updateData.password;
     delete updateData.confirmPassword;
     delete updateData.email; // often we don’t allow email changes
-    const updatedUser = yield (0, user_service_1.updateUserService)(id, updateData);
+    const updatedUser = yield user_service_1.user_service.updateUserService(id, updateData);
     res.status(200).json({
         success: true,
         message: "User updated successfully",
@@ -65,7 +65,18 @@ const DashboardAnalytis = (0, catch_async_1.default)((req, res) => __awaiter(voi
     (0, manage_response_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
-        message: "All users fetched successfully.",
+        message: "Dashboard analytis fetched successfully.",
+        data: result,
+    });
+}));
+const suspendUser = (0, catch_async_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    const data = req.body;
+    const result = yield user_service_1.user_service.suspendUser(userId, data);
+    (0, manage_response_1.default)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "user suspended successfully.",
         data: result,
     });
 }));
@@ -75,4 +86,5 @@ exports.user_controllers = {
     get_all_users,
     updateUserController: exports.updateUserController,
     DashboardAnalytis,
+    suspendUser
 };

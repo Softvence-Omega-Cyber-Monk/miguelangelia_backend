@@ -12,5 +12,7 @@ export type TUser = {
   yourRole?: string
   accountType : 'personal' | 'organizations',
   status : 'active' | "deactive" ,
-  isSuspened : boolean
+  isSuspened : boolean ,
+  profileImage?: string,
+  phone?: string,
 };

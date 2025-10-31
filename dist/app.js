@@ -26,7 +26,7 @@ const configs_1 = require("./app/configs");
 const app = (0, express_1.default)();
 // middleware
 app.use((0, cors_1.default)({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:5173", "http://localhost:5174"],
 }));
 app.use(express_1.default.json({ limit: "100mb" }));
 app.use(express_1.default.raw());
@@ -37,7 +37,7 @@ app.use("/api/v1", routes_1.default);
 app.get("/", (req, res) => {
     res.status(200).json({
         status: "success",
-        message: "Server is running successful !!",
+        message: "Miguelangelia Server is running successful !!",
         data: null,
     });
 });

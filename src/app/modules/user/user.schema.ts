@@ -41,6 +41,12 @@ const user_schema = new Schema<TUser>(
       type: Boolean,
       default: false,
     },
+    profileImage: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
   },
 
   {
