@@ -7,7 +7,7 @@ const FileUploadAndReportSchema = new Schema<TFileUploadAndReport>(
     fileExplore: { type: Object },
     summary: { type: Object },
     report: { type: Object },
-    
+    dashboardData: { type: Object },
     fileUrl: { type: String, required: true },
     fileName: { type: String, required: true },
     fileType: { type: String, required: true },

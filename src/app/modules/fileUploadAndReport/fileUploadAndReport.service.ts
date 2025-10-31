@@ -78,10 +78,9 @@ export const FileReportService = {
     });
 
     const summaryData = await response2.json();
-    console.log("🤖 Summary AI API response:", summaryData);
+    // console.log("🤖 Summary AI API response:", summaryData);
 
     // 3️⃣ Call the AI report API
-
     const aiReportUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/generate-report`;
 
     const response1 = await fetch(aiReportUrl, {
@@ -93,13 +92,29 @@ export const FileReportService = {
     });
 
     const report = await response1.json();
-    console.log("🤖 Report AI API response:", report);
+    // console.log("🤖 Report AI API response:", report);
+
+    const DashboardDataUrl = `https://financialanalyticalchatbot-9osk.onrender.com/ai/generate-dashboard?file_url=${encodeURIComponent(
+      uploaded.secure_url
+    )}`;
+
+    const response3 = await fetch(DashboardDataUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ file_url: uploaded.secure_url }),
+    });
+
+    const DashboardData = await response3.json();
+    console.log("🤖 Dashboard data API response:", DashboardData);
 
     const newReport = await FileUploadAndReportModel.findByIdAndUpdate(
       data.fileId,
       {
         summary: summaryData,
         report: report,
+        dashboardData: DashboardData,
       },
       { new: true }
     );
@@ -107,14 +122,20 @@ export const FileReportService = {
     return {
       summary: summaryData,
       report: report,
+      dashboardData: DashboardData,
     };
   },
 
-  getAll: async () => {
-    return await FileUploadAndReportModel.find().sort({ createdAt: -1 });
+  getAllReportsByUser: async (userId: string) => {
+    return await FileUploadAndReportModel.find({ userId: userId }).sort({
+      createdAt: -1,
+    });
   },
 
-  getByUser: async (userId: string) => {
-    return await FileUploadAndReportModel.find({ userId });
+  getSummaryReportAndDashboardDataByUser: async (fileId: string) => {
+    // console.log('file id ', fileId);
+    return await FileUploadAndReportModel.find({ _id: fileId }).select(
+      "summary report dashboardData"
+    );
   },
 };

@@ -30,6 +30,7 @@ export const FileReportController = {
   getReportAndSummry: async (req: Request, res: Response) => {
     try {
       const { userId ,fileId} = req.body;
+   
       const file = req.file;
 
       if (!file) {
@@ -53,19 +54,20 @@ export const FileReportController = {
     }
   },
 
-  getAllReports: async (_req: Request, res: Response) => {
+  getAllReportsByUser: async (_req: Request, res: Response) => {
     try {
-      const reports = await FileReportService.getAll();
+      const {userId} = _req.params;
+      const reports = await FileReportService.getAllReportsByUser( userId);
       res.status(200).json(reports);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   },
 
-  getUserReports: async (req: Request, res: Response) => {
+  getSummaryReportAndDashboardDataByUser: async (req: Request, res: Response) => {
     try {
-      const { userId } = req.params;
-      const reports = await FileReportService.getByUser(userId);
+      const { fileId } = req.params;
+      const reports = await FileReportService.getSummaryReportAndDashboardDataByUser(fileId);
       res.status(200).json(reports);
     } catch (error: any) {
       res.status(500).json({ message: error.message });

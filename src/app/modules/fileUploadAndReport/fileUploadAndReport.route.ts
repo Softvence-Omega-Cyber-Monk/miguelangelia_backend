@@ -38,9 +38,9 @@ router.post(
 );
 
 
-router.get("/", FileReportController.getAllReports);
-router.get("/user/:userId", FileReportController.getUserReports);
-router.get("/user/:userId", FileReportController.getReportAndSummry);
+router.get("/file/:userId", FileReportController.getAllReportsByUser);
+
+router.get("/getSingleFile/:fileId", FileReportController.getSummaryReportAndDashboardDataByUser);
 
 
 export const fileUploadAndReportRoute = router;

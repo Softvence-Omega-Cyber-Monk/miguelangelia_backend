@@ -3,6 +3,7 @@ export type TFileUploadAndReport = {
   fileExplore?: object;
   summary?: object; 
   report?: object;
+  dashboardData?: object;
   fileUrl: string;
   fileName: string;
   fileType: string;
