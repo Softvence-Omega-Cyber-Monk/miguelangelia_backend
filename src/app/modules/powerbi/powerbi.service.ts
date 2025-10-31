@@ -195,23 +195,47 @@ export const PowerBIService = {
   },
 
   async getDatasets(workspaceId: string, userId: string) {
-    // 1️⃣ Get a valid access token
-    const token = await PowerBIService.getValidAccessToken(userId);
-    console.log("datasets token", token);
+    try {
+      // 1️⃣ Get a valid access token
+      const token = await PowerBIService.getValidAccessToken(userId);
+      if (!token) throw new Error("No valid token found for user.");
 
-    console.log("Using workspace ID for datasets:", workspaceId);
+      console.log("🪙 Token retrieved for datasets request:", token);
+      console.log("📂 Using workspace ID:", workspaceId);
 
-    // 2️⃣ Call Power BI API for datasets
-    const response = await axios.get(
-      `${baseUrl}/groups/${workspaceId}/datasets`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+      // 2️⃣ Call Power BI API for datasets
+      const response = await axios.get(
+        `${baseUrl}/groups/${workspaceId}/datasets`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    console.log("Datasets response:", response.data);
+      // 3️⃣ Extract and format dataset list
+      const datasets = (response.data.value || []).map((ds: any) => ({
+        id: ds.id,
+        name: ds.name,
+        webUrl: ds.webUrl,
+        createdDate: ds.createdDate,
+        isRefreshable: ds.isRefreshable,
+      }));
 
-    // 3️⃣ Return the datasets array
-    return response.data.value;
+      console.log("✅ Datasets fetched:", datasets);
+
+      // 4️⃣ Return in a clean structure
+      return {
+        success: true,
+        workspaceId,
+        count: datasets.length,
+        datasets,
+      };
+    } catch (error: any) {
+      console.error("❌ Error fetching datasets:", error.message || error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.error?.message || "Failed to fetch datasets",
+      };
+    }
   },
 };

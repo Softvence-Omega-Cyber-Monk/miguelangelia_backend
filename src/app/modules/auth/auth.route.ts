@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { auth_controllers } from "./auth.controller";
+import { auth_controllers, updatePasswordController } from "./auth.controller";
 import RequestValidator from "../../middlewares/request_validator";
 import { auth_validation } from "./auth.validation";
 import auth from "../../middlewares/auth";
@@ -13,6 +13,8 @@ authRoute.post(
 );
 
 authRoute.post("/refresh-token", auth_controllers.refresh_token);
+
+authRoute.put("/changePassword",auth('admin','user'), updatePasswordController);
 
 authRoute.post(
   "/forgot-password",
