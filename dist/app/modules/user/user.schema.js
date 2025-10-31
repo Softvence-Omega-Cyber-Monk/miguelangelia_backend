@@ -41,6 +41,15 @@ const user_schema = new mongoose_1.Schema({
         type: Boolean,
         default: false,
     },
+    profileImage: {
+        type: String,
+    },
+    phone: {
+        type: String,
+    },
+    fullName: {
+        type: String,
+    },
 }, {
     timestamps: true,
 });

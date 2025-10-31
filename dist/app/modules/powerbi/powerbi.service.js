@@ -157,7 +157,7 @@ exports.PowerBIService = {
     },
     getDatasets(workspaceId, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c;
+            var _a, _b, _c, _d, _e, _f;
             try {
                 // 1️⃣ Get a valid access token
                 const token = yield exports.PowerBIService.getValidAccessToken(userId);
@@ -165,32 +165,58 @@ exports.PowerBIService = {
                     throw new Error("No valid token found for user.");
                 console.log("🪙 Token retrieved for datasets request:", token);
                 console.log("📂 Using workspace ID:", workspaceId);
-                // 2️⃣ Call Power BI API for datasets
+                // 2️⃣ Get all datasets in the workspace
                 const response = yield axios_1.default.get(`${baseUrl}/groups/${workspaceId}/datasets`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                // 3️⃣ Extract and format dataset list
-                const datasets = (response.data.value || []).map((ds) => ({
-                    id: ds.id,
-                    name: ds.name,
-                    webUrl: ds.webUrl,
-                    createdDate: ds.createdDate,
-                    isRefreshable: ds.isRefreshable,
-                }));
+                const datasets = response.data.value || [];
                 console.log("✅ Datasets fetched:", datasets);
-                // 4️⃣ Return in a clean structure
+                // 3️⃣ For each dataset, get table info
+                const datasetsWithTables = [];
+                for (const ds of datasets) {
+                    try {
+                        const tablesResponse = yield axios_1.default.get(`${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                        });
+                        const tables = tablesResponse.data.value || [];
+                        console.log(`📊 Tables in dataset "${ds.name}":`, tables);
+                        datasetsWithTables.push({
+                            id: ds.id,
+                            name: ds.name,
+                            webUrl: ds.webUrl,
+                            createdDate: ds.createdDate,
+                            isRefreshable: ds.isRefreshable,
+                            tables: tables.map((t) => {
+                                var _a;
+                                return ({
+                                    name: t.name,
+                                    columns: (_a = t.columns) === null || _a === void 0 ? void 0 : _a.map((c) => ({
+                                        name: c.name,
+                                        dataType: c.dataType,
+                                    })),
+                                });
+                            }),
+                        });
+                    }
+                    catch (tableErr) {
+                        console.error(`⚠️ Failed to fetch tables for dataset ${ds.name}:`, tableErr.message);
+                        datasetsWithTables.push(Object.assign(Object.assign({}, ds), { tables: [], error: ((_c = (_b = (_a = tableErr.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.error) === null || _c === void 0 ? void 0 : _c.message) ||
+                                "Failed to fetch tables" }));
+                    }
+                }
+                // 4️⃣ Return combined structure
                 return {
                     success: true,
                     workspaceId,
-                    count: datasets.length,
-                    datasets,
+                    count: datasetsWithTables.length,
+                    datasets: datasetsWithTables,
                 };
             }
             catch (error) {
                 console.error("❌ Error fetching datasets:", error.message || error);
                 return {
                     success: false,
-                    message: ((_c = (_b = (_a = error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.error) === null || _c === void 0 ? void 0 : _c.message) || "Failed to fetch datasets",
+                    message: ((_f = (_e = (_d = error.response) === null || _d === void 0 ? void 0 : _d.data) === null || _e === void 0 ? void 0 : _e.error) === null || _f === void 0 ? void 0 : _f.message) || "Failed to fetch datasets",
                 };
             }
         });

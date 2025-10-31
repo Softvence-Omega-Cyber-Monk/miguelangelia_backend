@@ -26,7 +26,7 @@ const configs_1 = require("./app/configs");
 const app = (0, express_1.default)();
 // middleware
 app.use((0, cors_1.default)({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: ["http://localhost:5173", "http://localhost:5174", "https://miguelangelia-client.vercel.app"],
 }));
 app.use(express_1.default.json({ limit: "100mb" }));
 app.use(express_1.default.raw());
