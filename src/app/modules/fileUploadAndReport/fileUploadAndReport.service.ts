@@ -60,7 +60,7 @@ export const FileReportService = {
 
   getReportAndSummry: async (data: {
     userId: string;
-    fileId: string;
+    fileId?: string;
     file: Express.Multer.File;
   }) => {
     const uploaded = await FileReportService.uploadToCloudinary(data.file.path);
@@ -109,15 +109,29 @@ export const FileReportService = {
     const DashboardData = await response3.json();
     console.log("🤖 Dashboard data API response:", DashboardData);
 
-    const newReport = await FileUploadAndReportModel.findByIdAndUpdate(
-      data.fileId,
-      {
+    let newFileReport;
+    if (data.fileId) {
+      newFileReport = await FileUploadAndReportModel.findByIdAndUpdate(
+        data.fileId,
+        {
+          summary: summaryData,
+          report: report,
+          dashboardData: DashboardData,
+        },
+        { new: true }
+      );
+    } else {
+      newFileReport = await FileUploadAndReportModel.create({
+        userId: data.userId,
+        fileUrl: uploaded.secure_url,
         summary: summaryData,
         report: report,
         dashboardData: DashboardData,
-      },
-      { new: true }
-    );
+        fileName: data.file.originalname,
+        fileType: data.file.mimetype,
+        fileSize: data.file.size,
+      });
+    }
 
     return {
       summary: summaryData,
