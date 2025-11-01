@@ -150,7 +150,7 @@ export const FileReportService = {
 
   getSummaryReportAndDashboardDataByUser: async (fileId: string) => {
     // console.log('file id ', fileId);
-    return await FileUploadAndReportModel.find({ _id: fileId }).select(
+    return await FileUploadAndReportModel.findOne({ _id: fileId }).select(
       "summary report dashboardData fileName _id"
     );
   },
