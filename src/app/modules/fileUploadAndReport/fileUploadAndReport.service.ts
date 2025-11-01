@@ -134,6 +134,8 @@ export const FileReportService = {
     }
 
     return {
+      _id: newFileReport?._id || null,
+      fileName: newFileReport?.fileName,
       summary: summaryData,
       report: report,
       dashboardData: DashboardData,
