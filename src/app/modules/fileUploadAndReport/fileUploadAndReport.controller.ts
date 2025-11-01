@@ -29,8 +29,8 @@ export const FileReportController = {
   },
   getReportAndSummry: async (req: Request, res: Response) => {
     try {
-      const { userId ,fileId} = req.body;
-   
+      const { userId, fileId } = req.body;
+
       const file = req.file;
 
       if (!file) {
@@ -56,22 +56,40 @@ export const FileReportController = {
 
   getAllReportsByUser: async (_req: Request, res: Response) => {
     try {
-      const {userId} = _req.params;
-      const reports = await FileReportService.getAllReportsByUser( userId);
+      const { userId } = _req.params;
+      const reports = await FileReportService.getAllReportsByUser(userId);
       res.status(200).json(reports);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   },
 
-  getSummaryReportAndDashboardDataByUser: async (req: Request, res: Response) => {
+  getSummaryReportAndDashboardDataByUser: async (
+    req: Request,
+    res: Response
+  ) => {
     try {
       const { fileId } = req.params;
-      const reports = await FileReportService.getSummaryReportAndDashboardDataByUser(fileId);
+      const reports =
+        await FileReportService.getSummaryReportAndDashboardDataByUser(fileId);
       res.status(200).json(reports);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   },
+  deleteFile: async (req: Request, res: Response) => {
+    try {
+      const { fileId } = req.params;
+      const deleteFile = await FileReportService.deleteFile(fileId);
+      res.status(201).json({
+        success: true,
+        message: " file delete successfully",
+        data: deleteFile,
+      });
 
+      // res.status(200).json(reports);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 };

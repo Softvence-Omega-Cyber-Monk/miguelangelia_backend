@@ -41,6 +41,7 @@ router.post(
 router.get("/file/:userId", FileReportController.getAllReportsByUser);
 
 router.get("/getSingleFile/:fileId", FileReportController.getSummaryReportAndDashboardDataByUser);
+router.delete("/delete/:fileId", FileReportController.deleteFile);
 
 
 export const fileUploadAndReportRoute = router;

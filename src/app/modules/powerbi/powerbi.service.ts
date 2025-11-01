@@ -214,56 +214,91 @@ export const PowerBIService = {
       const datasets = response.data.value || [];
       console.log("✅ Datasets fetched:", datasets);
 
-      // 3️⃣ For each dataset, get table info
-      const datasetsWithTables = [];
+      const datasetsWithDetails = [];
 
+      // 3️⃣ Iterate through datasets
       for (const ds of datasets) {
+        // console.log("dataset info:", ds);
+
+        const datasetDetails: any = {
+          id: ds.id,
+          name: ds.name,
+          webUrl: ds.webUrl,
+          createdDate: ds.createdDate,
+          isRefreshable: ds.isRefreshable,
+          tables: [],
+        };
+
+        // Check dataset type
+        const isImported =
+          ds.targetStorageMode === "Abf" || ds.createReportEmbedURL;
+
         try {
-          const tablesResponse = await axios.get(
-            `${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
+          if (!isImported) {
+            // 3️⃣ Push dataset → Get tables using /tables
+            const tablesResponse = await axios.get(
+              `${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
 
-          const tables = tablesResponse.data.value || [];
-          console.log(`📊 Tables in dataset "${ds.name}":`, tables);
+            const tables = tablesResponse.data.value || [];
+            console.log(`📊 Tables in dataset "${ds.name}":`, tables);
 
-          datasetsWithTables.push({
-            id: ds.id,
-            name: ds.name,
-            webUrl: ds.webUrl,
-            createdDate: ds.createdDate,
-            isRefreshable: ds.isRefreshable,
-            tables: tables.map((t: any) => ({
+            datasetDetails.tables = tables.map((t: any) => ({
               name: t.name,
               columns: t.columns?.map((c: any) => ({
                 name: c.name,
                 dataType: c.dataType,
               })),
-            })),
-          });
-        } catch (tableErr: any) {
+            }));
+          } else {
+            // 4️⃣ Imported dataset → Try querying top 10 rows
+            console.log(
+              `⚙️ Running DAX query for imported dataset: ${ds.name}`
+            );
+
+            const daxQuery = {
+              queries: [
+                {
+                  query:
+                    'EVALUATE TOPN(10, ROW("Message", "Query executed successfully"))',
+                },
+              ],
+            };
+
+            const queryResponse = await axios.post(
+              `${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/executeQueries`,
+              daxQuery,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            datasetDetails.queryResult = queryResponse.data.results?.[0] || {};
+          }
+        } catch (innerErr: any) {
           console.error(
-            `⚠️ Failed to fetch tables for dataset ${ds.name}:`,
-            tableErr.message
+            `⚠️ Failed to process dataset "${ds.name}":`,
+            innerErr.message
           );
-          datasetsWithTables.push({
-            ...ds,
-            tables: [],
-            error:
-              tableErr.response?.data?.error?.message ||
-              "Failed to fetch tables",
-          });
+          datasetDetails.error =
+            innerErr.response?.data?.error?.message || "Failed to fetch data.";
         }
+
+        datasetsWithDetails.push(datasetDetails);
       }
 
-      // 4️⃣ Return combined structure
+      // 5️⃣ Return structured response
       return {
         success: true,
         workspaceId,
-        count: datasetsWithTables.length,
-        datasets: datasetsWithTables,
+        count: datasetsWithDetails.length,
+        datasets: datasetsWithDetails,
       };
     } catch (error: any) {
       console.error("❌ Error fetching datasets:", error.message || error);

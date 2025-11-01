@@ -138,4 +138,11 @@ export const FileReportService = {
       "summary report dashboardData"
     );
   },
+  deleteFile: async (fileId: string) => {
+    // console.log('file id ', fileId);
+
+    const res = await FileUploadAndReportModel.deleteOne({ _id: fileId });
+    console.log(res);
+    return res;
+  },
 };
