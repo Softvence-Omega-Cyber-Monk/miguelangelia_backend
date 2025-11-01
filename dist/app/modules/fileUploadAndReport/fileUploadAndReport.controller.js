@@ -77,4 +77,19 @@ exports.FileReportController = {
             res.status(500).json({ message: error.message });
         }
     }),
+    deleteFile: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { fileId } = req.params;
+            const deleteFile = yield fileUploadAndReport_service_1.FileReportService.deleteFile(fileId);
+            res.status(201).json({
+                success: true,
+                message: " file delete successfully",
+                data: deleteFile,
+            });
+            // res.status(200).json(reports);
+        }
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }),
 };

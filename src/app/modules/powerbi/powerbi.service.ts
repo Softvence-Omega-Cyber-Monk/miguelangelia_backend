@@ -196,30 +196,22 @@ export const PowerBIService = {
 
   async getDatasets(workspaceId: string, userId: string) {
     try {
-      // 1️⃣ Get a valid access token
       const token = await PowerBIService.getValidAccessToken(userId);
       if (!token) throw new Error("No valid token found for user.");
 
-      console.log("🪙 Token retrieved for datasets request:", token);
+      console.log("🪙 Token retrieved:", token);
       console.log("📂 Using workspace ID:", workspaceId);
 
-      // 2️⃣ Get all datasets in the workspace
+      // 1️⃣ Get all datasets
       const response = await axios.get(
         `${baseUrl}/groups/${workspaceId}/datasets`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const datasets = response.data.value || [];
-      console.log("✅ Datasets fetched:", datasets);
-
       const datasetsWithDetails = [];
 
-      // 3️⃣ Iterate through datasets
       for (const ds of datasets) {
-        // console.log("dataset info:", ds);
-
         const datasetDetails: any = {
           id: ds.id,
           name: ds.name,
@@ -229,41 +221,28 @@ export const PowerBIService = {
           tables: [],
         };
 
-        // Check dataset type
-        const isImported =
-          ds.targetStorageMode === "Abf" || ds.createReportEmbedURL;
-
         try {
-          if (!isImported) {
-            // 3️⃣ Push dataset → Get tables using /tables
-            const tablesResponse = await axios.get(
-              `${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
+          // 2️⃣ Try to get tables
+          const tablesResponse = await axios.get(
+            `${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
 
-            const tables = tablesResponse.data.value || [];
-            console.log(`📊 Tables in dataset "${ds.name}":`, tables);
+          const tables = tablesResponse.data.value || [];
+          datasetDetails.tables = tables.map((t: any) => t.name);
 
-            datasetDetails.tables = tables.map((t: any) => ({
-              name: t.name,
-              columns: t.columns?.map((c: any) => ({
-                name: c.name,
-                dataType: c.dataType,
-              })),
-            }));
-          } else {
-            // 4️⃣ Imported dataset → Try querying top 10 rows
-            console.log(
-              `⚙️ Running DAX query for imported dataset: ${ds.name}`
-            );
+          console.log(`📊 Tables in ${ds.name}:`, datasetDetails.tables);
+
+          // 3️⃣ If at least one table exists, query top 10 rows
+          if (tables.length > 0) {
+            const firstTableName = tables[0].name;
+
+            console.log(`⚙️ Querying top 10 rows from: ${firstTableName}`);
 
             const daxQuery = {
               queries: [
                 {
-                  query:
-                    'EVALUATE TOPN(10, ROW("Message", "Query executed successfully"))',
+                  query: `EVALUATE TOPN(10, '${firstTableName}')`,
                 },
               ],
             };
@@ -279,11 +258,15 @@ export const PowerBIService = {
               }
             );
 
-            datasetDetails.queryResult = queryResponse.data.results?.[0] || {};
+            datasetDetails.dataPreview =
+              queryResponse.data.results?.[0]?.tables?.[0]?.rows || [];
+          } else {
+            datasetDetails.note =
+              "No tables found or not accessible via API (likely an imported PBIX dataset).";
           }
         } catch (innerErr: any) {
           console.error(
-            `⚠️ Failed to process dataset "${ds.name}":`,
+            `⚠️ Failed to fetch tables or data for "${ds.name}":`,
             innerErr.message
           );
           datasetDetails.error =
@@ -293,7 +276,6 @@ export const PowerBIService = {
         datasetsWithDetails.push(datasetDetails);
       }
 
-      // 5️⃣ Return structured response
       return {
         success: true,
         workspaceId,

@@ -157,66 +157,76 @@ exports.PowerBIService = {
     },
     getDatasets(workspaceId, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c, _d, _e, _f;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
             try {
-                // 1️⃣ Get a valid access token
                 const token = yield exports.PowerBIService.getValidAccessToken(userId);
                 if (!token)
                     throw new Error("No valid token found for user.");
-                console.log("🪙 Token retrieved for datasets request:", token);
+                console.log("🪙 Token retrieved:", token);
                 console.log("📂 Using workspace ID:", workspaceId);
-                // 2️⃣ Get all datasets in the workspace
-                const response = yield axios_1.default.get(`${baseUrl}/groups/${workspaceId}/datasets`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+                // 1️⃣ Get all datasets
+                const response = yield axios_1.default.get(`${baseUrl}/groups/${workspaceId}/datasets`, { headers: { Authorization: `Bearer ${token}` } });
                 const datasets = response.data.value || [];
-                console.log("✅ Datasets fetched:", datasets);
-                // 3️⃣ For each dataset, get table info
-                const datasetsWithTables = [];
+                const datasetsWithDetails = [];
                 for (const ds of datasets) {
+                    const datasetDetails = {
+                        id: ds.id,
+                        name: ds.name,
+                        webUrl: ds.webUrl,
+                        createdDate: ds.createdDate,
+                        isRefreshable: ds.isRefreshable,
+                        tables: [],
+                    };
                     try {
-                        const tablesResponse = yield axios_1.default.get(`${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`, {
-                            headers: { Authorization: `Bearer ${token}` },
-                        });
+                        // 2️⃣ Try to get tables
+                        const tablesResponse = yield axios_1.default.get(`${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`, { headers: { Authorization: `Bearer ${token}` } });
                         const tables = tablesResponse.data.value || [];
-                        console.log(`📊 Tables in dataset "${ds.name}":`, tables);
-                        datasetsWithTables.push({
-                            id: ds.id,
-                            name: ds.name,
-                            webUrl: ds.webUrl,
-                            createdDate: ds.createdDate,
-                            isRefreshable: ds.isRefreshable,
-                            tables: tables.map((t) => {
-                                var _a;
-                                return ({
-                                    name: t.name,
-                                    columns: (_a = t.columns) === null || _a === void 0 ? void 0 : _a.map((c) => ({
-                                        name: c.name,
-                                        dataType: c.dataType,
-                                    })),
-                                });
-                            }),
-                        });
+                        datasetDetails.tables = tables.map((t) => t.name);
+                        console.log(`📊 Tables in ${ds.name}:`, datasetDetails.tables);
+                        // 3️⃣ If at least one table exists, query top 10 rows
+                        if (tables.length > 0) {
+                            const firstTableName = tables[0].name;
+                            console.log(`⚙️ Querying top 10 rows from: ${firstTableName}`);
+                            const daxQuery = {
+                                queries: [
+                                    {
+                                        query: `EVALUATE TOPN(10, '${firstTableName}')`,
+                                    },
+                                ],
+                            };
+                            const queryResponse = yield axios_1.default.post(`${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/executeQueries`, daxQuery, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    "Content-Type": "application/json",
+                                },
+                            });
+                            datasetDetails.dataPreview =
+                                ((_d = (_c = (_b = (_a = queryResponse.data.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.tables) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.rows) || [];
+                        }
+                        else {
+                            datasetDetails.note =
+                                "No tables found or not accessible via API (likely an imported PBIX dataset).";
+                        }
                     }
-                    catch (tableErr) {
-                        console.error(`⚠️ Failed to fetch tables for dataset ${ds.name}:`, tableErr.message);
-                        datasetsWithTables.push(Object.assign(Object.assign({}, ds), { tables: [], error: ((_c = (_b = (_a = tableErr.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.error) === null || _c === void 0 ? void 0 : _c.message) ||
-                                "Failed to fetch tables" }));
+                    catch (innerErr) {
+                        console.error(`⚠️ Failed to fetch tables or data for "${ds.name}":`, innerErr.message);
+                        datasetDetails.error =
+                            ((_g = (_f = (_e = innerErr.response) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.error) === null || _g === void 0 ? void 0 : _g.message) || "Failed to fetch data.";
                     }
+                    datasetsWithDetails.push(datasetDetails);
                 }
-                // 4️⃣ Return combined structure
                 return {
                     success: true,
                     workspaceId,
-                    count: datasetsWithTables.length,
-                    datasets: datasetsWithTables,
+                    count: datasetsWithDetails.length,
+                    datasets: datasetsWithDetails,
                 };
             }
             catch (error) {
                 console.error("❌ Error fetching datasets:", error.message || error);
                 return {
                     success: false,
-                    message: ((_f = (_e = (_d = error.response) === null || _d === void 0 ? void 0 : _d.data) === null || _e === void 0 ? void 0 : _e.error) === null || _f === void 0 ? void 0 : _f.message) || "Failed to fetch datasets",
+                    message: ((_k = (_j = (_h = error.response) === null || _h === void 0 ? void 0 : _h.data) === null || _j === void 0 ? void 0 : _j.error) === null || _k === void 0 ? void 0 : _k.message) || "Failed to fetch datasets",
                 };
             }
         });

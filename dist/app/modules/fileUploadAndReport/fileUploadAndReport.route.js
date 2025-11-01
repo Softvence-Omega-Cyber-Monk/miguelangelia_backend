@@ -30,4 +30,5 @@ router.post("/create/fileExplore", upload.single("file"), fileUploadAndReport_co
 router.post("/create/getReportAndSummry", upload.single("file"), fileUploadAndReport_controller_1.FileReportController.getReportAndSummry);
 router.get("/file/:userId", fileUploadAndReport_controller_1.FileReportController.getAllReportsByUser);
 router.get("/getSingleFile/:fileId", fileUploadAndReport_controller_1.FileReportController.getSummaryReportAndDashboardDataByUser);
+router.delete("/delete/:fileId", fileUploadAndReport_controller_1.FileReportController.deleteFile);
 exports.fileUploadAndReportRoute = router;

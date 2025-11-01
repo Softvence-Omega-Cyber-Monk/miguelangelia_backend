@@ -91,11 +91,26 @@ exports.FileReportService = {
         });
         const DashboardData = yield response3.json();
         console.log("🤖 Dashboard data API response:", DashboardData);
-        const newReport = yield fileUploadAndReport_model_1.FileUploadAndReportModel.findByIdAndUpdate(data.fileId, {
-            summary: summaryData,
-            report: report,
-            dashboardData: DashboardData,
-        }, { new: true });
+        let newFileReport;
+        if (data.fileId) {
+            newFileReport = yield fileUploadAndReport_model_1.FileUploadAndReportModel.findByIdAndUpdate(data.fileId, {
+                summary: summaryData,
+                report: report,
+                dashboardData: DashboardData,
+            }, { new: true });
+        }
+        else {
+            newFileReport = yield fileUploadAndReport_model_1.FileUploadAndReportModel.create({
+                userId: data.userId,
+                fileUrl: uploaded.secure_url,
+                summary: summaryData,
+                report: report,
+                dashboardData: DashboardData,
+                fileName: data.file.originalname,
+                fileType: data.file.mimetype,
+                fileSize: data.file.size,
+            });
+        }
         return {
             summary: summaryData,
             report: report,
@@ -110,5 +125,11 @@ exports.FileReportService = {
     getSummaryReportAndDashboardDataByUser: (fileId) => __awaiter(void 0, void 0, void 0, function* () {
         // console.log('file id ', fileId);
         return yield fileUploadAndReport_model_1.FileUploadAndReportModel.find({ _id: fileId }).select("summary report dashboardData");
+    }),
+    deleteFile: (fileId) => __awaiter(void 0, void 0, void 0, function* () {
+        // console.log('file id ', fileId);
+        const res = yield fileUploadAndReport_model_1.FileUploadAndReportModel.deleteOne({ _id: fileId });
+        console.log(res);
+        return res;
     }),
 };
