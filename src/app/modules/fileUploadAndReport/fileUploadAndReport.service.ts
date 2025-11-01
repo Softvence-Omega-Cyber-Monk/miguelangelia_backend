@@ -151,7 +151,7 @@ export const FileReportService = {
   getSummaryReportAndDashboardDataByUser: async (fileId: string) => {
     // console.log('file id ', fileId);
     return await FileUploadAndReportModel.find({ _id: fileId }).select(
-      "summary report dashboardData"
+      "summary report dashboardData fileName _id"
     );
   },
   deleteFile: async (fileId: string) => {
