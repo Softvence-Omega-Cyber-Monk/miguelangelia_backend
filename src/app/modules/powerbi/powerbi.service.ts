@@ -199,16 +199,13 @@ export const PowerBIService = {
       const token = await PowerBIService.getValidAccessToken(userId);
       if (!token) throw new Error("No valid token found for user.");
 
-      console.log("🪙 Token retrieved:", token);
-      console.log("📂 Using workspace ID:", workspaceId);
-
-      // 1️⃣ Get all datasets
       const response = await axios.get(
         `${baseUrl}/groups/${workspaceId}/datasets`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const datasets = response.data.value || [];
+
       const datasetsWithDetails = [];
 
       for (const ds of datasets) {
@@ -222,7 +219,6 @@ export const PowerBIService = {
         };
 
         try {
-          // 2️⃣ Try to get tables
           const tablesResponse = await axios.get(
             `${baseUrl}/groups/${workspaceId}/datasets/${ds.id}/tables`,
             { headers: { Authorization: `Bearer ${token}` } }
@@ -231,14 +227,8 @@ export const PowerBIService = {
           const tables = tablesResponse.data.value || [];
           datasetDetails.tables = tables.map((t: any) => t.name);
 
-          console.log(`📊 Tables in ${ds.name}:`, datasetDetails.tables);
-
-          // 3️⃣ If at least one table exists, query top 10 rows
           if (tables.length > 0) {
             const firstTableName = tables[0].name;
-
-            console.log(`⚙️ Querying top 10 rows from: ${firstTableName}`);
-
             const daxQuery = {
               queries: [
                 {
@@ -262,15 +252,18 @@ export const PowerBIService = {
               queryResponse.data.results?.[0]?.tables?.[0]?.rows || [];
           } else {
             datasetDetails.note =
-              "No tables found or not accessible via API (likely an imported PBIX dataset).";
+              "No tables found (likely a Push dataset without data).";
           }
         } catch (innerErr: any) {
-          console.error(
-            `⚠️ Failed to fetch tables or data for "${ds.name}":`,
-            innerErr.message
-          );
-          datasetDetails.error =
-            innerErr.response?.data?.error?.message || "Failed to fetch data.";
+          // Handle "Not Push API" datasets gracefully
+          if (innerErr.response?.status === 404) {
+            datasetDetails.note =
+              "This is an imported or DirectQuery dataset — tables are not accessible via REST API.";
+          } else {
+            datasetDetails.error =
+              innerErr.response?.data?.error?.message ||
+              "Failed to fetch table list.";
+          }
         }
 
         datasetsWithDetails.push(datasetDetails);
@@ -291,4 +284,5 @@ export const PowerBIService = {
       };
     }
   },
+  
 };
