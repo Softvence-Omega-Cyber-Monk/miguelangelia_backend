@@ -39,11 +39,11 @@ export const user_service = {
   },
 
   updateUserService: async (userId: string, updateData: Partial<TUser>) => {
-    console.log(updateData);
+
     const updatedUser = await User_Model.findByIdAndUpdate(userId, updateData, {
       new: true,
       runValidators: true,
-    }).select("-password -confirmPassword"); // don't return sensitive data
+    })
 
     if (!updatedUser) {
       throw new Error("User not found");
@@ -51,6 +51,20 @@ export const user_service = {
 
     return updatedUser;
   },
+  deleteUserService: async (userId: string) => {
+    const deletedUser = await User_Model.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      throw new Error("User not found");
+    }
+
+    return {
+      _id: deletedUser._id,
+      email: deletedUser.email,
+      organizationName: deletedUser.organizationName,
+    };
+  },
+  
   DashboardAnalytis: async () => {
     const allUsers = await User_Model.find();
     const organazations = await User_Model.find({
@@ -83,5 +97,3 @@ export const user_service = {
     }
   },
 };
-
-

@@ -31,10 +31,24 @@ const user_schema = new mongoose_1.Schema({
         enum: ["personal", "organizations"],
         required: true,
     },
-    isActive: {
-        type: Boolean,
+    status: {
+        type: String,
+        enum: ["active", "deactive"],
         required: true,
-        default: true,
+        default: "active",
+    },
+    isSuspened: {
+        type: Boolean,
+        default: false,
+    },
+    profileImage: {
+        type: String,
+    },
+    phone: {
+        type: String,
+    },
+    fullName: {
+        type: String,
     },
 }, {
     timestamps: true,

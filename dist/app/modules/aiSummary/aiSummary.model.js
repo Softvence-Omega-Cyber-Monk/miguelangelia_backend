@@ -33,18 +33,11 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PowerBiTokenModel = void 0;
+exports.AiUsageModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const WorkspaceSchema = new mongoose_1.Schema({
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-}, { _id: false } // prevent MongoDB from creating an _id for each workspace
-);
-const PowerBiTokenSchema = new mongoose_1.Schema({
-    userId: { type: String, required: true, unique: true },
-    access_token: { type: String, required: true },
-    refresh_token: { type: String, required: true },
-    workspaces: { type: [WorkspaceSchema], default: [] },
-    expires_in: { type: Number, required: true },
+const AiUsageSchema = new mongoose_1.Schema({
+    userId: { type: String, required: true },
+    singleApiCallCost: { type: Number, default: 0 },
+    singleApiTokenUsed: { type: Number, default: 0 },
 }, { timestamps: true });
-exports.PowerBiTokenModel = mongoose_1.default.model("PowerBiToken", PowerBiTokenSchema);
+exports.AiUsageModel = mongoose_1.default.model("AiUsage", AiUsageSchema);

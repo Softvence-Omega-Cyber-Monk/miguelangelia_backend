@@ -31,13 +31,17 @@ router.post(
   upload.single("file"),
   FileReportController.fileExplore
 );
-router.get(
+router.post(
   "/create/getReportAndSummry",
   upload.single("file"),
   FileReportController.getReportAndSummry
 );
-router.get("/", FileReportController.getAllReports);
-router.get("/user/:userId", FileReportController.getUserReports);
-router.get("/user/:userId", FileReportController.getReportAndSummry);
+
+
+router.get("/file/:userId", FileReportController.getAllReportsByUser);
+
+router.get("/getSingleFile/:fileId", FileReportController.getSummaryReportAndDashboardDataByUser);
+router.delete("/delete/:fileId", FileReportController.deleteFile);
+
 
 export const fileUploadAndReportRoute = router;

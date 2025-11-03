@@ -33,18 +33,17 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PowerBiTokenModel = void 0;
+exports.FileUploadAndReportModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const WorkspaceSchema = new mongoose_1.Schema({
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-}, { _id: false } // prevent MongoDB from creating an _id for each workspace
-);
-const PowerBiTokenSchema = new mongoose_1.Schema({
-    userId: { type: String, required: true, unique: true },
-    access_token: { type: String, required: true },
-    refresh_token: { type: String, required: true },
-    workspaces: { type: [WorkspaceSchema], default: [] },
-    expires_in: { type: Number, required: true },
+const FileUploadAndReportSchema = new mongoose_1.Schema({
+    userId: { type: String, required: true },
+    fileExplore: { type: Object },
+    summary: { type: Object },
+    report: { type: Object },
+    dashboardData: { type: Object },
+    fileUrl: { type: String, required: true },
+    fileName: { type: String, required: true },
+    fileType: { type: String, required: true },
+    fileSize: { type: Number, required: true },
 }, { timestamps: true });
-exports.PowerBiTokenModel = mongoose_1.default.model("PowerBiToken", PowerBiTokenSchema);
+exports.FileUploadAndReportModel = mongoose_1.default.model("FileUploadAndReport", FileUploadAndReportSchema);

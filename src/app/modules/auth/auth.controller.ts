@@ -1,7 +1,8 @@
+import { Request, Response, NextFunction } from "express";
 import { configs } from "../../configs";
 import catchAsync from "../../utils/catch_async";
 import manageResponse from "../../utils/manage_response";
-import { auth_services } from "./auth.service";
+import { auth_services, updatePassword } from "./auth.service";
 import httpStatus from "http-status";
 
 const login_user = catchAsync(async (req, res) => {
@@ -35,6 +36,30 @@ const refresh_token = catchAsync(async (req, res) => {
   });
 });
 
+// expects: { currentPassword: string, newPassword: string }
+export const updatePasswordController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?.userId;
+    console.log("User ID from req.user:", userId);
+    const { currentPassword, newPassword } = req.body;
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const result = await updatePassword(userId, currentPassword, newPassword);
+
+    if (!result.success)
+      return res.status(400).json({ message: result.message });
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const forget_password = catchAsync(async (req, res) => {
   const { email } = req?.body;
 
@@ -57,7 +82,11 @@ export const resetPasswordController = catchAsync(async (req, res) => {
       });
     }
 
-    const result = await auth_services.resetPasswordService(email, token, password);
+    const result = await auth_services.resetPasswordService(
+      email,
+      token,
+      password
+    );
 
     res.status(200).json({
       success: true,
@@ -77,5 +106,5 @@ export const auth_controllers = {
   refresh_token,
 
   forget_password,
-  resetPasswordController
+  resetPasswordController,
 };

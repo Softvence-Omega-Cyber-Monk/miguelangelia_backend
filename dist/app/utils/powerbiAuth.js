@@ -17,7 +17,7 @@ const axios_1 = __importDefault(require("axios"));
 const qs_1 = __importDefault(require("qs"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const tenantId = process.env.TENANT_ID;
+const tenantId = "common";
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const getAccessToken = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -26,7 +26,7 @@ const getAccessToken = () => __awaiter(void 0, void 0, void 0, function* () {
         grant_type: "client_credentials",
         client_id: clientId,
         client_secret: clientSecret,
-        scope: "https://analysis.windows.net/powerbi/api/.default",
+        scope: "https://analysis.windows.net/powerbi/api/.default offline_access",
     });
     const response = yield axios_1.default.post(tokenUrl, data, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

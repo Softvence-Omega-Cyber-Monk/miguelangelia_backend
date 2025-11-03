@@ -84,6 +84,45 @@ const refresh_token_from_db = async (token: string) => {
   return { accessToken };
 };
 
+export async function updatePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+) {
+  if (!currentPassword || !newPassword) {
+    return {
+      success: false,
+      message: "Both current and new passwords are required",
+    };
+  }
+
+
+
+  // fetch user (adjust for your ORM)
+  const user = await User_Model.findById(userId).select("password");
+  if (!user) return { success: false, message: "User not found" };
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch)
+    return { success: false, message: "Current password is incorrect" };
+
+  // optionally prevent reuse
+  const isSameAsOld = await bcrypt.compare(newPassword, user.password);
+  if (isSameAsOld)
+    return {
+      success: false,
+      message: "New password must be different from the old password",
+    };
+
+  const salt = await bcrypt.genSalt(10);
+  const hashed = await bcrypt.hash(newPassword, salt);
+
+  user.password = hashed;
+  await user.save();
+
+  return { success: true };
+}
+
 export const forget_password_from_db = async (email: string) => {
   const user = await User_Model.findOne({ email });
 

@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.user_controllers = exports.updateUserController = void 0;
+exports.user_controllers = exports.deleteUserController = exports.updateUserController = void 0;
 const catch_async_1 = __importDefault(require("../../utils/catch_async"));
 const manage_response_1 = __importDefault(require("../../utils/manage_response"));
 const http_status_1 = __importDefault(require("http-status"));
 const user_service_1 = require("./user.service");
+const cloudinary_1 = __importDefault(require("../../utils/cloudinary"));
 const create_user = (0, catch_async_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userData = req.body;
     const result = yield user_service_1.user_service.createUser(userData);
@@ -47,17 +48,29 @@ const get_all_users = (0, catch_async_1.default)((req, res) => __awaiter(void 0,
     });
 }));
 exports.updateUserController = (0, catch_async_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params; // user id from URL
-    const updateData = req.body;
-    // optionally, remove restricted fields like password here
-    delete updateData.password;
-    delete updateData.confirmPassword;
-    delete updateData.email; // often we don’t allow email changes
-    const updatedUser = yield (0, user_service_1.updateUserService)(id, updateData);
+    const { userId } = req.params;
+    const updateData = Object.assign({}, req.body);
+    // Handle profile image if uploaded
+    if (req.file) {
+        const uploadedImage = yield (0, cloudinary_1.default)(req.file);
+        if (uploadedImage === null || uploadedImage === void 0 ? void 0 : uploadedImage.secure_url) {
+            updateData.profileImage = uploadedImage.secure_url;
+        }
+    }
+    const updatedUser = yield user_service_1.user_service.updateUserService(userId, updateData);
     res.status(200).json({
         success: true,
         message: "User updated successfully",
         data: updatedUser,
+    });
+}));
+exports.deleteUserController = (0, catch_async_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params;
+    const deletedUser = yield user_service_1.user_service.deleteUserService(userId);
+    res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+        data: deletedUser,
     });
 }));
 const DashboardAnalytis = (0, catch_async_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -65,7 +78,18 @@ const DashboardAnalytis = (0, catch_async_1.default)((req, res) => __awaiter(voi
     (0, manage_response_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
-        message: "All users fetched successfully.",
+        message: "Dashboard analytis fetched successfully.",
+        data: result,
+    });
+}));
+const suspendUser = (0, catch_async_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    const data = req.body;
+    const result = yield user_service_1.user_service.suspendUser(userId, data);
+    (0, manage_response_1.default)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "user suspended successfully.",
         data: result,
     });
 }));
@@ -74,5 +98,7 @@ exports.user_controllers = {
     get_single_user,
     get_all_users,
     updateUserController: exports.updateUserController,
+    deleteUserController: exports.deleteUserController,
     DashboardAnalytis,
+    suspendUser,
 };

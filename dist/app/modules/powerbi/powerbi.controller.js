@@ -9,56 +9,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PowerBIController = exports.generatePowerBIToken = void 0;
+exports.PowerBIController = void 0;
 const powerbi_service_1 = require("./powerbi.service");
-const generatePowerBIToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const token = yield (0, powerbi_service_1.getPowerBIAccessToken)();
-        return res.status(200).json({
-            success: true,
-            message: "Power BI access token generated successfully",
-            token,
-        });
-    }
-    catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message || "Failed to generate Power BI access token",
-        });
-    }
-});
-exports.generatePowerBIToken = generatePowerBIToken;
 exports.PowerBIController = {
-    getReports(req, res) {
+    saveToken(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const workspaceId = process.env.WORKSPACE_ID;
-                const reports = yield powerbi_service_1.PowerBIService.getReports(workspaceId);
-                res.json({ success: true, data: reports });
+                const { userId, access_token, refresh_token, expires_in } = req.body;
+                if (!userId || !access_token || !refresh_token || !expires_in) {
+                    return res.status(400).json({ message: "Missing required fields" });
+                }
+                const token = yield powerbi_service_1.PowerBIService.saveOrUpdateToken({
+                    userId,
+                    access_token,
+                    refresh_token,
+                    expires_in,
+                });
+                res.status(200).json({ success: true, token });
             }
-            catch (error) {
-                console.error(error);
-                res.status(500).json({ success: false, message: error.message });
-            }
-        });
-    },
-    getDashboards(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const workspaceId = process.env.WORKSPACE_ID;
-                const dashboards = yield powerbi_service_1.PowerBIService.getDashboards(workspaceId);
-                res.json({ success: true, data: dashboards });
-            }
-            catch (error) {
-                console.error(error);
-                res.status(500).json({ success: false, message: error.message });
+            catch (err) {
+                console.error(err);
+                res.status(500).json({ success: false, message: err.message });
             }
         });
     },
     getAuthUrl(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const authUrl = powerbi_service_1.PowerBIService.getAuthUrl();
+                const userId = req.params.userId;
+                console.log("Generating auth URL for user ID:", userId);
+                const authUrl = powerbi_service_1.PowerBIService.getAuthUrl(userId);
                 return res.redirect(authUrl);
             }
             catch (error) {
@@ -70,7 +50,7 @@ exports.PowerBIController = {
     callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { code, error, error_description } = req.query;
+                const { code, state, error, error_description } = req.query;
                 if (error) {
                     console.error("Callback Error:", { error, error_description });
                     return res.status(400).json({ error, error_description });
@@ -78,8 +58,20 @@ exports.PowerBIController = {
                 if (!code) {
                     return res.status(400).json({ message: "Authorization code missing" });
                 }
-                const token = yield powerbi_service_1.PowerBIService.exchangeCodeForToken(code);
-                res.status(200).json({
+                let userId;
+                if (state) {
+                    try {
+                        const parsedState = JSON.parse(decodeURIComponent(state));
+                        userId = parsedState.userId;
+                    }
+                    catch (err) {
+                        console.warn("Failed to parse state:", err);
+                    }
+                }
+                // console.log("User ID from state:", userId);
+                const token = yield powerbi_service_1.PowerBIService.exchangeCodeForToken(code, userId);
+                // console.log("Obtained Tokens:", token);
+                res.status(200).send({
                     success: true,
                     message: "Power BI connected successfully!",
                     token,
@@ -88,6 +80,48 @@ exports.PowerBIController = {
             catch (err) {
                 console.error("Callback Handler Error:", err.message);
                 res.status(500).json({ error: err.message });
+            }
+        });
+    },
+    getReports(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.params.userId;
+                const workspaceId = process.env.WORKSPACE_ID;
+                const reports = yield powerbi_service_1.PowerBIService.getReports(workspaceId, userId);
+                res.json({ success: true, data: reports });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+        });
+    },
+    getDashboards(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.params.userId;
+                const workspaceId = process.env.WORKSPACE_ID;
+                const dashboards = yield powerbi_service_1.PowerBIService.getDashboards(workspaceId, userId);
+                res.json({ success: true, data: dashboards });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+        });
+    },
+    getDatasets(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.params.userId;
+                const workspaceId = req.params.workspaceId;
+                const dashboards = yield powerbi_service_1.PowerBIService.getDatasets(workspaceId, userId);
+                res.json({ success: true, data: dashboards });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({ success: false, message: error.message });
             }
         });
     },
