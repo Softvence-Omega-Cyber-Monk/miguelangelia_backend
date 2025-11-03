@@ -10,8 +10,7 @@ router.get("/connect/:userId", PowerBIController.getAuthUrl);
 // Step 2: Handle callback and store tokens
 router.get("/callback", PowerBIController.callback);
 
-router.get("/reports/:userId", PowerBIController.getReports);
-router.get("/dashboards/:userId", PowerBIController.getDashboards);
-router.get("/dataset/:workspaceId/:userId", PowerBIController.getDatasets);
+router.get("/reports/:userId/:workspaceId", PowerBIController.getReports);
+router.get("/dashboards/:userId/:workspaceId", PowerBIController.getDashboards);
 
 export const powerbiRoute = router;
