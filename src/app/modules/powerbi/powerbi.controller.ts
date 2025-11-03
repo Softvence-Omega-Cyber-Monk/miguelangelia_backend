@@ -106,15 +106,4 @@ export const PowerBIController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
-  async getDatasets(req: Request, res: Response) {
-    try {
-      const userId = req.params.userId;
-      const workspaceId = req.params.workspaceId;
-      const dashboards = await PowerBIService.getDatasets(workspaceId, userId);
-      res.json({ success: true, data: dashboards });
-    } catch (error: any) {
-      console.error(error);
-      res.status(500).json({ success: false, message: error.message });
-    }
-  },
 };

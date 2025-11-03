@@ -12,6 +12,5 @@ router.get("/callback", PowerBIController.callback);
 
 router.get("/reports/:userId", PowerBIController.getReports);
 router.get("/dashboards/:userId", PowerBIController.getDashboards);
-router.get("/dataset/:workspaceId/:userId", PowerBIController.getDatasets);
 
 export const powerbiRoute = router;
