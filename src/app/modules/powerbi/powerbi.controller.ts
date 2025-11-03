@@ -83,7 +83,9 @@ export const PowerBIController = {
   async getReports(req: Request, res: Response) {
     try {
       const userId = req.params.userId;
-      const workspaceId = process.env.WORKSPACE_ID!;
+      const workspaceId = req.params.workspaceId;
+
+      console.log("Fetching reports for user:", userId, "in workspace:", workspaceId);
       const reports = await PowerBIService.getReports(workspaceId, userId);
       res.json({ success: true, data: reports });
     } catch (error: any) {
@@ -95,7 +97,7 @@ export const PowerBIController = {
   async getDashboards(req: Request, res: Response) {
     try {
       const userId = req.params.userId;
-      const workspaceId = process.env.WORKSPACE_ID!;
+      const workspaceId = req.params.workspaceId;
       const dashboards = await PowerBIService.getDashboards(
         workspaceId,
         userId
