@@ -1,15 +1,19 @@
-import { Types } from "mongoose"
+
 
 export type TUser = {
-    name: string,
-    photo?: string,
-    address?: {
-        location?: string,
-        city?: string,
-        state?: string,
-        postCode?: string,
-        country?: string,
-        timeZone?: string
-    },
-    accountId?: Types.ObjectId
-}
+  role: "user" | "admin";
+  email: string;
+  password: string;
+  confirmPassword: string;
+  organizationName?: string,
+  organizationSize ?:string,
+  address?: string,
+  teamMemberNo?: number,
+  yourRole?: string
+  accountType : 'personal' | 'organizations',
+  status : 'active' | "deactive" ,
+  isSuspened : boolean ,
+  profileImage?: string,
+  phone?: string,
+  fullName?: string,
+};

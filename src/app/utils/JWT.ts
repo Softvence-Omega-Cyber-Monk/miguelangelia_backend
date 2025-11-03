@@ -17,6 +17,7 @@ export const jwtHelpers = {
     generateToken,
     verifyToken,
 };
+
 export type JwtPayloadType = JwtPayload & {
     email: string;
     role: string;

@@ -1,20 +1,23 @@
-import { NextFunction, Request, Response, Router } from "express";
+import { Router } from "express";
 import { user_controllers } from "./user.controller";
-import uploader from "../../middlewares/uploader";
-import { user_validations } from "./user.validation";
-import auth from "../../middlewares/auth";
+import multer from "multer";
 
-const userRoute = Router()
+const upload = multer({ dest: "uploads/" });
 
-userRoute.patch(
-    "/update-profile",
-    auth("ADMIN","USER"),
-    uploader.single("image"),
-    (req: Request, res: Response, next: NextFunction) => {
-        req.body = user_validations.update_user.parse(JSON.parse(req?.body?.data))
-        user_controllers.update_profile(req, res, next)
-    },
-)
+const userRoute = Router();
 
+userRoute.post("/create", user_controllers.create_user);
+userRoute.get("/get-single/:id", user_controllers.get_single_user);
+userRoute.get("/getAll", user_controllers.get_all_users);
+
+userRoute.put(
+  "/update/:userId",
+  upload.single("profileImage"),
+  user_controllers.updateUserController
+);
+userRoute.delete("/delete/:userId", user_controllers.deleteUserController);
+
+userRoute.get("/getAnalytis", user_controllers.DashboardAnalytis);
+userRoute.put("/suspendUser/:userId", user_controllers.suspendUser);
 
 export default userRoute;
