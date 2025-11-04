@@ -24,6 +24,25 @@ export const PowerBIController = {
       res.status(500).json({ success: false, message: err.message });
     }
   },
+  async getSavedToken(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      // console.log('Fetching saved token for user ID:', userId);
+
+      if (!userId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const token = await PowerBIService.getSavedToken({
+        userId,
+      } as any);
+
+      res.status(200).json({ success: true, token });
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  },
 
   async getAuthUrl(req: Request, res: Response) {
     try {
@@ -66,8 +85,6 @@ export const PowerBIController = {
         code as string,
         userId
       );
-
-
 
       res.redirect(`http://localhost:5173/user/integration`);
 

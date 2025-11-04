@@ -12,6 +12,9 @@ router.get("/callback", PowerBIController.callback);
 
 router.post("/powerbi/token", PowerBIController.saveToken);
 
+router.get("/getSavedToken/:userId", PowerBIController.getSavedToken);
+
+
 router.get("/reports/:userId/:workspaceId", PowerBIController.getReports);
 router.get("/dashboards/:userId/:workspaceId", PowerBIController.getDashboards);
 router.post(

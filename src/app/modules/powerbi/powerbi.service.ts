@@ -129,6 +129,22 @@ export const PowerBIService = {
       new: true,
     });
   },
+  async getSavedToken(userId: string | { userId: string }) {
+    try {
+      // Extract string if userId is an object
+      const id = typeof userId === "string" ? userId : userId.userId;
+
+      console.log("Fetching saved token for user ID:", id);
+
+      const token = await PowerBiTokenModel.findOne({ userId: id });
+      console.log("Retrieved token:", token);
+
+      return token; // can be null if not found
+    } catch (error) {
+      console.error("Error fetching saved token:", error);
+      throw new Error("Failed to fetch saved token");
+    }
+  },
 
   // Get token by userId
 
