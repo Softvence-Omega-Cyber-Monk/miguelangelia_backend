@@ -4,7 +4,8 @@ import qs from "qs";
 import { PowerBiTokenModel } from "./powerbi.model";
 import { TPowerBiToken } from "./powerbi.interface";
 const baseUrl = "https://api.powerbi.com/v1.0/myorg";
-
+import fs from "fs";
+import FormData from "form-data";
 // const tenantId = process.env.TENANT_ID!;
 const tenantId = "common";
 
@@ -61,6 +62,65 @@ export const PowerBIService = {
     console.log(`Refreshed and updated token for user: ${userId}`);
 
     return access_token;
+  },
+
+  async getEmbedReportToken(
+    workspaceId: string,
+    reportId: string,
+    userId: string
+  ) {
+    const accessToken = await PowerBIService.getValidAccessToken(userId);
+
+    const response = await axios.post(
+      `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/reports/${reportId}/GenerateToken`,
+      {
+        accessLevel: "View",
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    return response.data; // contains token, expiration
+  },
+
+  async getDashboardEmbedToken(
+    workspaceId: string,
+    dashboardId: string,
+    userId: string
+  ) {
+    const accessToken = await PowerBIService.getValidAccessToken(userId);
+
+    const response = await axios.post(
+      `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/dashboards/${dashboardId}/GenerateToken`,
+      {
+        accessLevel: "View", // or "Edit" if you need edit access
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    return response.data; // contains token + expiration
+  },
+  async generateDatasetEmbedToken(
+    workspaceId: string,
+    datasetId: string,
+    userId: string
+  ) {
+    const token = await PowerBIService.getValidAccessToken(userId);
+
+    const response = await axios.post(
+      `${baseUrl}/groups/${workspaceId}/datasets/${datasetId}/GenerateToken`,
+      { accessLevel: "View" },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data; // token + expiration
   },
 
   async saveOrUpdateToken(token: TPowerBiToken) {
@@ -162,36 +222,124 @@ export const PowerBIService = {
   },
 
   async getReports(workspaceId: string, userId: string) {
-    const token = await PowerBIService.getValidAccessToken(userId);
+    // Step 1: Get Power BI access token
+    const accessToken = await PowerBIService.getValidAccessToken(userId);
     console.log("Using workspace ID:", workspaceId);
 
+    // Step 2: Get list of reports from the workspace
     const response = await axios.get(
       `${baseUrl}/groups/${workspaceId}/reports`,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
 
-    console.log("response:-----------____________________", response.data);
+    const reports = response.data.value;
 
-    return response.data.value;
+    // Step 3: Generate embed tokens for each report
+    const reportsWithTokens = await Promise.all(
+      reports.map(async (report: any) => {
+        try {
+          const embedToken = await PowerBIService.getEmbedReportToken(
+            workspaceId,
+            report.id,
+            userId
+          );
+
+          return {
+            ...report,
+            embedToken: embedToken.token, // assuming .token from your getEmbedToken response
+            embedTokenExpiry: embedToken.expiration, // optional
+          };
+        } catch (err: any) {
+          console.error(
+            `Failed to get embed token for report ${report.name}:`,
+            err.message
+          );
+          return report; // fallback without token
+        }
+      })
+    );
+
+    console.log("Reports with embed tokens:", reportsWithTokens);
+
+    // Step 4: Return combined data
+    return reportsWithTokens;
   },
-
   async getDashboards(workspaceId: string, userId: string) {
+    try {
+      // Step 1: Get Power BI access token (for REST API call)
+      const accessToken = await PowerBIService.getValidAccessToken(userId);
+      // console.log("Access token for dashboard request:", accessToken);
+
+      // Step 2: Fetch dashboards in the workspace
+      const response = await axios.get(
+        `${baseUrl}/groups/${workspaceId}/dashboards`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      const dashboards = response.data.value || [];
+      console.log("Dashboards fetched:", dashboards.length);
+
+      // Step 3: Generate embed tokens for each dashboard
+      const dashboardsWithTokens = await Promise.all(
+        dashboards.map(async (dashboard: any) => {
+          try {
+            const embedToken = await PowerBIService.getDashboardEmbedToken(
+              workspaceId,
+              dashboard.id,
+              userId
+            );
+
+            return {
+              ...dashboard,
+              embedToken: embedToken.token, // token string
+              tokenExpiry: embedToken.expiration, // optional
+            };
+          } catch (err: any) {
+            console.error(
+              `❌ Failed to get embed token for dashboard "${dashboard.displayName}":`,
+              err.message
+            );
+            return dashboard;
+          }
+        })
+      );
+
+      // Step 4: Return dashboards with embed tokens
+      return dashboardsWithTokens;
+    } catch (error: any) {
+      console.error("Error fetching dashboards:", error.message);
+      throw error;
+    }
+  },
+  async uploadCsvToPowerBI(
+    workspaceId: string,
+    userId: string,
+    filePath: string
+  ) {
     const token = await PowerBIService.getValidAccessToken(userId);
 
-    console.log("token in dashboard", token);
+    const form = new FormData();
+    form.append("file", fs.createReadStream(filePath), {
+      filename: filePath.split("/").pop(),
+      contentType: "text/csv",
+    });
+    form.append("file", fs.createReadStream(filePath));
 
-    const response = await axios.get(
-      `${baseUrl}/groups/${workspaceId}/dashboards`,
+    const response = await axios.post(
+      `${baseUrl}/groups/${workspaceId}/imports?datasetDisplayName=AI_CSV_Report&nameConflict=CreateOrOverwrite`,
+      form,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
-    console.log("dashboard response ", response.data);
-
-    return response.data.value;
+    return response.data; // Returns import ID, dataset ID, etc.
   },
-
 };

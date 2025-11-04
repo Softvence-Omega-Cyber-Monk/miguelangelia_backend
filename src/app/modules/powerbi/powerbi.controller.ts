@@ -85,7 +85,12 @@ export const PowerBIController = {
       const userId = req.params.userId;
       const workspaceId = req.params.workspaceId;
 
-      console.log("Fetching reports for user:", userId, "in workspace:", workspaceId);
+      console.log(
+        "Fetching reports for user:",
+        userId,
+        "in workspace:",
+        workspaceId
+      );
       const reports = await PowerBIService.getReports(workspaceId, userId);
       res.json({ success: true, data: reports });
     } catch (error: any) {
@@ -106,6 +111,46 @@ export const PowerBIController = {
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ success: false, message: error.message });
+    }
+  },
+  async uploadCsvController(req: Request, res: Response) {
+    try {
+      const { workspaceId, userId } = req.body;
+      const filePath = req.file?.path;
+      console.log("CSV Upload Request from controller :", { workspaceId, userId, filePath });
+
+      if (!filePath) return res.status(400).json({ error: "CSV file missing" });
+
+      // 1️⃣ Upload CSV
+      const uploadResult = await PowerBIService.uploadCsvToPowerBI(
+        workspaceId,
+        userId,
+        filePath
+      );
+
+      const datasetId = uploadResult?.datasets?.[0]?.id || uploadResult?.id;
+
+      if (!datasetId)
+        return res
+          .status(500)
+          .json({ error: "Dataset ID not found after upload" });
+
+      // 2️⃣ Generate embed token for dataset
+      const embedToken = await PowerBIService.generateDatasetEmbedToken(
+        workspaceId,
+        datasetId,
+        userId
+      );
+
+      res.json({
+        message: "CSV uploaded and embed token generated successfully",
+        datasetId,
+        embedToken,
+        uploadResult,
+      });
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ error: err.message || "Upload failed" });
     }
   },
 };
