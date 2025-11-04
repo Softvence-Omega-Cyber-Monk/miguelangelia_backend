@@ -6,7 +6,7 @@ const upload = multer({ dest: "uploads/" }); // temporary folder for CSV
 
 const router = express.Router();
 
-router.post("/connect/:userId", PowerBIController.getAuthUrl);
+router.get("/connect/:userId", PowerBIController.getAuthUrl);
 // Step 2: Handle callback and store tokens
 router.get("/callback", PowerBIController.callback);
 
