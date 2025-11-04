@@ -67,13 +67,15 @@ export const PowerBIController = {
         userId
       );
 
-      // console.log("Obtained Tokens:", token);
 
-      res.status(200).send({
-        success: true,
-        message: "Power BI connected successfully!",
-        token,
-      });
+
+      res.redirect(`http://localhost:5173/user/integration`);
+
+      // res.status(200).send({
+      //   success: true,
+      //   message: "Power BI connected successfully!",
+      //   token,
+      // });
     } catch (err: any) {
       console.error("Callback Handler Error:", err.message);
       res.status(500).json({ error: err.message });
@@ -117,7 +119,11 @@ export const PowerBIController = {
     try {
       const { workspaceId, userId } = req.body;
       const filePath = req.file?.path;
-      console.log("CSV Upload Request from controller :", { workspaceId, userId, filePath });
+      console.log("CSV Upload Request from controller :", {
+        workspaceId,
+        userId,
+        filePath,
+      });
 
       if (!filePath) return res.status(400).json({ error: "CSV file missing" });
 
