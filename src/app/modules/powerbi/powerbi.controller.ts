@@ -86,7 +86,7 @@ export const PowerBIController = {
         userId
       );
 
-      res.redirect(`http://localhost:5173/user/integration`);
+      res.redirect(`https://miguelangelia-client.vercel.app/user/integration`);
 
       // res.status(200).send({
       //   success: true,
