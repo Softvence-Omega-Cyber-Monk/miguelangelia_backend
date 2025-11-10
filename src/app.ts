@@ -14,7 +14,11 @@ const app = express();
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173" , "http://localhost:5174" , "https://miguelangelia-client.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://miguelangelia-client.vercel.app",
+    ],
   })
 );
 app.use(express.json({ limit: "100mb" }));
@@ -46,13 +50,11 @@ export const createDefaultSuperAdmin = async () => {
 
     if (!existingAdmin) {
       await User_Model.create({
-        
         email: "mdsoyaibsourav11@gmail.com",
         password: hashedPassword,
         confirmPassword: hashedPassword,
         role: "admin",
-        accountType: 'personal'
-        
+        accountType: "personal",
       });
       console.log("✅ Default Admin created.");
     } else {

@@ -37,11 +37,15 @@ router.post(
   FileReportController.getReportAndSummry
 );
 
-
+router.get("/getAllFile", FileReportController.getAllReports);
 router.get("/file/:userId", FileReportController.getAllReportsByUser);
 
-router.get("/getSingleFile/:fileId", FileReportController.getSummaryReportAndDashboardDataByUser);
+router.get(
+  "/getSingleFile/:fileId",
+  FileReportController.getSummaryReportAndDashboardDataByUser
+);
 router.delete("/delete/:fileId", FileReportController.deleteFile);
 
+router.get("/analytics", FileReportController.getAnalytics);
 
 export const fileUploadAndReportRoute = router;

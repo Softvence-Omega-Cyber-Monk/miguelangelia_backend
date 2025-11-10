@@ -142,10 +142,19 @@ export const FileReportService = {
     };
   },
 
+  getAllReports: async () => {
+    return await FileUploadAndReportModel.find()
+      .sort({
+        createdAt: -1,
+      })
+      .select("fileName  createdAt")
+      .populate("userId", "name email");
+  },
   getAllReportsByUser: async (userId: string) => {
-    return await FileUploadAndReportModel.find({ userId: userId }).sort({
+    const res = await FileUploadAndReportModel.find({ userId: userId }).sort({
       createdAt: -1,
     });
+    return res;
   },
 
   getSummaryReportAndDashboardDataByUser: async (fileId: string) => {
@@ -160,5 +169,64 @@ export const FileReportService = {
     const res = await FileUploadAndReportModel.deleteOne({ _id: fileId });
     console.log(res);
     return res;
+  },
+
+  async getAnalytics(query: any) {
+    const { userId, year } = query;
+
+    const match: any = {};
+
+    if (userId) match.userId = userId;
+
+    if (year) {
+      match.createdAt = {
+        $gte: new Date(`${year}-01-01`),
+        $lte: new Date(`${year}-12-31`),
+      };
+    }
+
+    // ✅ Monthly
+    const monthly = await FileUploadAndReportModel.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: { month: { $month: "$createdAt" } },
+          totalUploads: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.month": 1 } },
+    ]);
+
+    // ✅ Quarterly
+    const quarterly = await FileUploadAndReportModel.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: {
+            quarter: { $ceil: { $divide: [{ $month: "$createdAt" }, 3] } },
+          },
+          totalUploads: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.quarter": 1 } },
+    ]);
+
+    // ✅ Yearly
+    const yearly = await FileUploadAndReportModel.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: { year: { $year: "$createdAt" } },
+          totalUploads: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.year": 1 } },
+    ]);
+
+    return {
+      monthly,
+      quarterly,
+      yearly,
+    };
   },
 };

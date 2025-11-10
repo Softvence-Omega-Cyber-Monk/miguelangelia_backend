@@ -24,6 +24,25 @@ export const PowerBIController = {
       res.status(500).json({ success: false, message: err.message });
     }
   },
+  async getSavedToken(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      // console.log('Fetching saved token for user ID:', userId);
+
+      if (!userId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const token = await PowerBIService.getSavedToken({
+        userId,
+      } as any);
+
+      res.status(200).json({ success: true, token });
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  },
 
   async getAuthUrl(req: Request, res: Response) {
     try {
@@ -67,13 +86,13 @@ export const PowerBIController = {
         userId
       );
 
-      // console.log("Obtained Tokens:", token);
+      res.redirect(`https://miguelangelia-client.vercel.app/user/integration`);
 
-      res.status(200).send({
-        success: true,
-        message: "Power BI connected successfully!",
-        token,
-      });
+      // res.status(200).send({
+      //   success: true,
+      //   message: "Power BI connected successfully!",
+      //   token,
+      // });
     } catch (err: any) {
       console.error("Callback Handler Error:", err.message);
       res.status(500).json({ error: err.message });
@@ -85,7 +104,12 @@ export const PowerBIController = {
       const userId = req.params.userId;
       const workspaceId = req.params.workspaceId;
 
-      console.log("Fetching reports for user:", userId, "in workspace:", workspaceId);
+      console.log(
+        "Fetching reports for user:",
+        userId,
+        "in workspace:",
+        workspaceId
+      );
       const reports = await PowerBIService.getReports(workspaceId, userId);
       res.json({ success: true, data: reports });
     } catch (error: any) {
@@ -106,6 +130,50 @@ export const PowerBIController = {
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ success: false, message: error.message });
+    }
+  },
+  async uploadCsvController(req: Request, res: Response) {
+    try {
+      const { workspaceId, userId } = req.body;
+      const filePath = req.file?.path;
+      console.log("CSV Upload Request from controller :", {
+        workspaceId,
+        userId,
+        filePath,
+      });
+
+      if (!filePath) return res.status(400).json({ error: "CSV file missing" });
+
+      // 1️⃣ Upload CSV
+      const uploadResult = await PowerBIService.uploadCsvToPowerBI(
+        workspaceId,
+        userId,
+        filePath
+      );
+
+      const datasetId = uploadResult?.datasets?.[0]?.id || uploadResult?.id;
+
+      if (!datasetId)
+        return res
+          .status(500)
+          .json({ error: "Dataset ID not found after upload" });
+
+      // 2️⃣ Generate embed token for dataset
+      const embedToken = await PowerBIService.generateDatasetEmbedToken(
+        workspaceId,
+        datasetId,
+        userId
+      );
+
+      res.json({
+        message: "CSV uploaded and embed token generated successfully",
+        datasetId,
+        embedToken,
+        uploadResult,
+      });
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ error: err.message || "Upload failed" });
     }
   },
 };
