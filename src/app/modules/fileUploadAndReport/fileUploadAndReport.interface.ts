@@ -1,5 +1,7 @@
+import { Types } from "mongoose";
+
 export type TFileUploadAndReport = {
-  userId: string;
+  userId: Types.ObjectId | string;
   fileExplore?: object;
   summary?: object; 
   report?: object;

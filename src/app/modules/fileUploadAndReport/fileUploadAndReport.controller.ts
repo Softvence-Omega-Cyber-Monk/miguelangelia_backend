@@ -54,6 +54,15 @@ export const FileReportController = {
     }
   },
 
+  getAllReports: async (_req: Request, res: Response) => {
+    try {
+   
+      const reports = await FileReportService.getAllReports();
+      res.status(200).json(reports);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  },
   getAllReportsByUser: async (_req: Request, res: Response) => {
     try {
       const { userId } = _req.params;
@@ -90,6 +99,22 @@ export const FileReportController = {
       // res.status(200).json(reports);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  },
+  async getAnalytics(req: Request, res: Response) {
+    try {
+      const data = await FileReportService.getAnalytics(req.query);
+
+      return res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to get analytics",
+        error,
+      });
     }
   },
 };
