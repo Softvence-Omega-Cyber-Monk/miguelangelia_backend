@@ -331,19 +331,34 @@ export const PowerBIService = {
       throw error;
     }
   },
+  
   async uploadCsvToPowerBI(
     workspaceId: string,
     userId: string,
     filePath: string
   ) {
+    console.log("Uploading CSV to Power BI from service:", {
+      workspaceId,
+      userId,
+      filePath,
+    });
     const token = await PowerBIService.getValidAccessToken(userId);
+    // console.log("token", token);
 
     const form = new FormData();
+    const fileName: any = filePath.split("/").pop();
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`CSV file does not exist: ${filePath}`);
+    }
+    const stats = fs.statSync(filePath);
+    if (stats.size === 0) {
+      throw new Error(`CSV file is empty: ${filePath}`);
+    }
     form.append("file", fs.createReadStream(filePath), {
-      filename: filePath.split("/").pop(),
+      filename: fileName.endsWith(".csv") ? fileName : `${fileName}.csv`,
       contentType: "text/csv",
     });
-    form.append("file", fs.createReadStream(filePath));
+    console.log("form", form);
 
     const response = await axios.post(
       `${baseUrl}/groups/${workspaceId}/imports?datasetDisplayName=AI_CSV_Report&nameConflict=CreateOrOverwrite`,
