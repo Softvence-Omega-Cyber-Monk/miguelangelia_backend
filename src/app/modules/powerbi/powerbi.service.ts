@@ -6,6 +6,7 @@ import { TPowerBiToken } from "./powerbi.interface";
 const baseUrl = "https://api.powerbi.com/v1.0/myorg";
 import fs from "fs";
 import FormData from "form-data";
+import path from "path";
 // const tenantId = process.env.TENANT_ID!;
 const tenantId = "common";
 
@@ -60,6 +61,14 @@ export const PowerBIService = {
     await tokenDoc.save();
 
     console.log(`Refreshed and updated token for user: ${userId}`);
+
+    const decoded = JSON.parse(
+      Buffer.from(access_token.split(".")[1], "base64").toString()
+    );
+    console.log(
+      " decode access token ----------------------",
+      decoded.upn || decoded.unique_name
+    ); // should show user's email
 
     return access_token;
   },
@@ -331,46 +340,157 @@ export const PowerBIService = {
       throw error;
     }
   },
-  
-  async uploadCsvToPowerBI(
+  async addServicePrincipalToWorkspace(workspaceId: string, userId: string) {
+    try {
+      // 1. Get Service Principal info from token
+      const token = await PowerBIService.getValidAccessToken(userId);
+      const decoded = JSON.parse(
+        Buffer.from(token.split(".")[1], "base64").toString()
+      );
+      const servicePrincipalId = decoded.oid; // This is the Object ID
+
+      console.log("🔧 Adding Service Principal to workspace:", {
+        workspaceId,
+        servicePrincipalId,
+        applicationId: decoded.appid,
+      });
+
+      // 2. Make API call to add Service Principal to workspace
+      const url = `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/users`;
+
+      const requestBody = {
+        identifier: servicePrincipalId,
+        groupUserAccessRight: "Admin", // or "Member", "Contributor"
+        principalType: "App", // This is crucial for Service Principals
+      };
+
+      const response = await axios.post(url, requestBody, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("✅ Service Principal successfully added to workspace");
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Failed to add Service Principal to workspace:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
+      throw new Error(
+        `Failed to add Service Principal: ${
+          error.response?.data?.error?.message || error.message
+        }`
+      );
+    }
+  },
+
+
+  async getServicePrincipalInfo(userId: string) {
+  try {
+    const token = await PowerBIService.getValidAccessToken(userId);
+    
+    // Decode the JWT token to get Service Principal info
+    const decoded = JSON.parse(
+      Buffer.from(token.split('.')[1], 'base64').toString()
+    );
+    
+    const servicePrincipalInfo = {
+      applicationId: decoded.appid, // This is the Client ID/Application ID
+      objectId: decoded.oid, // This is the Object ID/Service Principal ID
+      tenantId: decoded.tid,
+      name: decoded.name || 'No name in token',
+      tokenType: decoded.appid ? "Service Principal" : "User Token"
+    };
+    
+    console.log("🔍 Service Principal Info from Token:", servicePrincipalInfo);
+    return servicePrincipalInfo;
+  } catch (error) {
+    console.error("Error getting Service Principal info:", error);
+    throw error;
+  }
+},
+async uploadCsvToPowerBI(
     workspaceId: string,
     userId: string,
     filePath: string
   ) {
-    console.log("Uploading CSV to Power BI from service:", {
+    console.log("📤 Uploading CSV to Power BI:", {
       workspaceId,
       userId,
       filePath,
     });
-    const token = await PowerBIService.getValidAccessToken(userId);
-    // console.log("token", token);
 
-    const form = new FormData();
-    const fileName: any = filePath.split("/").pop();
+    // 1️⃣ Validate File
     if (!fs.existsSync(filePath)) {
-      throw new Error(`CSV file does not exist: ${filePath}`);
+      throw new Error(`❌ CSV file does not exist: ${filePath}`);
     }
+
     const stats = fs.statSync(filePath);
     if (stats.size === 0) {
-      throw new Error(`CSV file is empty: ${filePath}`);
+      throw new Error(`❌ CSV file is empty: ${filePath}`);
     }
+
+    // 2️⃣ Get Access Token
+    const token = await PowerBIService.getValidAccessToken(userId);
+
+    // 3️⃣ Prepare FormData with proper filename
+    // Ensure the filename has .csv extension
+    const fileName = path.basename(filePath);
+    const csvFileName = fileName.endsWith('.csv') ? fileName : `${fileName}.csv`;
+    
+    const form = new FormData();
     form.append("file", fs.createReadStream(filePath), {
-      filename: fileName.endsWith(".csv") ? fileName : `${fileName}.csv`,
-      contentType: "text/csv",
+      filename: csvFileName,
+      contentType: 'text/csv'
     });
-    console.log("form", form);
 
-    const response = await axios.post(
-      `${baseUrl}/groups/${workspaceId}/imports?datasetDisplayName=AI_CSV_Report&nameConflict=CreateOrOverwrite`,
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          Authorization: `Bearer ${token}`,
-        },
+    // 4️⃣ Setup Headers
+    const headers = {
+      ...form.getHeaders(),
+      Authorization: `Bearer ${token}`,
+    };
+
+    // 5️⃣ API URL
+    const url = `${baseUrl}/groups/${workspaceId}/imports?datasetDisplayName=AI_CSV_Report&nameConflict=CreateOrOverwrite`;
+
+    console.log("➡️ Power BI Upload URL:", url);
+    console.log("➡️ Uploading as filename:", csvFileName);
+
+    // 6️⃣ Upload Request
+    try {
+      const response = await axios.post(url, form, {
+        headers,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+        timeout: 60000,
+        validateStatus: (status) => status < 500,
+      });
+
+      if (response.status >= 400) {
+        console.error("❌ Power BI Upload Failed:", response.data);
+        throw new Error(`Power BI upload failed: ${JSON.stringify(response.data)}`);
       }
-    );
 
-    return response.data; // Returns import ID, dataset ID, etc.
-  },
+      console.log("✅ Power BI Upload Success:", {
+        importId: response.data?.id,
+        datasetId: response.data?.datasets?.[0]?.id,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error(
+        "🚨 Error uploading CSV to Power BI:",
+        error?.response?.data || error.message
+      );
+      throw new Error(
+        error?.response?.data?.error?.message ||
+          error.message ||
+          "Failed to upload CSV to Power BI"
+      );
+    }
+  }
 };
