@@ -40,6 +40,6 @@ export const GeneralChatHistoryService = {
       .sort({
         createdAt: -1,
       })
-      .select(" userId thread_id  response question");
+      .select(" userId thread_id  response question createdAt ");
   },
 };
