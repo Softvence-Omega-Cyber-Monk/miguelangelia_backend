@@ -7,6 +7,8 @@ import appRouter from "./routes";
 import bcrypt from "bcrypt";
 import { User_Model } from "./app/modules/user/user.schema";
 import { configs } from "./app/configs";
+import cron from "node-cron";
+import { GeneralChatHistoryModel } from "./app/modules/generalChatHistory/generalChatHistory.model";
 
 // define app
 const app = express();
@@ -34,6 +36,13 @@ app.get("/", (req: Request, res: Response) => {
     message: "Miguelangelia Server is running successful !!",
     data: null,
   });
+});
+
+//clear general chat history every 12 hours
+cron.schedule("0 */12 * * *", async () => {
+  const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000); // 12 hours
+  await GeneralChatHistoryModel.deleteMany({ createdAt: { $lte: cutoff } });
+  console.log("✅ General chat history cleaned (older than 12 hours)");
 });
 
 // Create Default SuperAdmin if not exists
