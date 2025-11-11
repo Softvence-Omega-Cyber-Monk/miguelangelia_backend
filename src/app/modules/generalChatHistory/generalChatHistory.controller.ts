@@ -5,12 +5,12 @@ export const GeneralChatHistoryController = {
   // POST /api/chat-history
   async create(req: Request, res: Response) {
     try {
-      const { userId, thread_id, response: message } = req.body;
+      const { userId, thread_id, question, response: message } = req.body;
       if (!userId || !thread_id || !message) {
         return res.status(400).json({ success: false, message: "Missing required fields" });
       }
 
-      const chat = await GeneralChatHistoryService.create({ userId, thread_id, response: message });
+      const chat = await GeneralChatHistoryService.create({ userId, thread_id,  question, response: message });
       return res.status(201).json({ success: true, data: chat });
     } catch (error) {
       console.error("Error creating chat history:", error);
