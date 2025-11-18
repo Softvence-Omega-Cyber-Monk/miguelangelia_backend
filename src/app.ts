@@ -7,6 +7,8 @@ import appRouter from "./routes";
 import bcrypt from "bcrypt";
 import { User_Model } from "./app/modules/user/user.schema";
 import { configs } from "./app/configs";
+import cron from "node-cron";
+import { GeneralChatHistoryModel } from "./app/modules/generalChatHistory/generalChatHistory.model";
 
 // define app
 const app = express();
@@ -15,6 +17,8 @@ const app = express();
 app.use(
   cors({
     origin: [
+      "*",
+      "https://anantyc.com",
       "http://localhost:5173",
       "http://localhost:5174",
       "https://miguelangelia-client.vercel.app",
@@ -36,11 +40,18 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
+//clear general chat history every 12 hours
+cron.schedule("0 */12 * * *", async () => {
+  const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000); // 12 hours
+  await GeneralChatHistoryModel.deleteMany({ createdAt: { $lte: cutoff } });
+  console.log("✅ General chat history cleaned (older than 12 hours)");
+});
+
 // Create Default SuperAdmin if not exists
 export const createDefaultSuperAdmin = async () => {
   try {
     const existingAdmin = await User_Model.findOne({
-      email: "mdsoyaibsourav11@gmail.com",
+      email: "admin123@gmail.com",
     });
 
     const hashedPassword = await bcrypt.hash(
@@ -50,7 +61,7 @@ export const createDefaultSuperAdmin = async () => {
 
     if (!existingAdmin) {
       await User_Model.create({
-        email: "mdsoyaibsourav11@gmail.com",
+        email: "admin123@gmail.com",
         password: hashedPassword,
         confirmPassword: hashedPassword,
         role: "admin",

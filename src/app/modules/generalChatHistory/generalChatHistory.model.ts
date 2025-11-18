@@ -8,6 +8,7 @@ const generalChatHistorySchema = new Schema<GeneralChatHistory>(
   {
     userId: { type: String, required: true },
     thread_id: { type: String, required: true },
+    question: { type: String, required: true },
     response: { type: String, required: true },
   },
   { timestamps: true }
