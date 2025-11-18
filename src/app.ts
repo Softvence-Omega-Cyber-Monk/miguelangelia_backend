@@ -17,6 +17,8 @@ const app = express();
 app.use(
   cors({
     origin: [
+      "*",
+      "https://anantyc.com",
       "http://localhost:5173",
       "http://localhost:5174",
       "https://miguelangelia-client.vercel.app",
@@ -49,7 +51,7 @@ cron.schedule("0 */12 * * *", async () => {
 export const createDefaultSuperAdmin = async () => {
   try {
     const existingAdmin = await User_Model.findOne({
-      email: "mdsoyaibsourav11@gmail.com",
+      email: "admin123@gmail.com",
     });
 
     const hashedPassword = await bcrypt.hash(
@@ -59,7 +61,7 @@ export const createDefaultSuperAdmin = async () => {
 
     if (!existingAdmin) {
       await User_Model.create({
-        email: "mdsoyaibsourav11@gmail.com",
+        email: "admin123@gmail.com",
         password: hashedPassword,
         confirmPassword: hashedPassword,
         role: "admin",
